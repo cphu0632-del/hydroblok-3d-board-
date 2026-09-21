@@ -1,0 +1,2485 @@
+
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>HYDRO-BLOK 格兰板｜3D 结构与技术参考</title>
+  
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Three.js & OrbitControls -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+    
+    body {
+      font-family: 'Plus Jakarta Sans', 'Noto Sans SC', sans-serif;
+      overflow: hidden;
+      user-select: none;
+    }
+
+    @keyframes pulse-glow {
+      0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.45), 0 8px 20px rgba(0,0,0,0.15); }
+      50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0), 0 8px 25px rgba(16, 185, 129, 0.3); }
+    }
+    .btn-pulse {
+      animation: pulse-glow 2.2s infinite ease-in-out;
+    }
+
+    .brand-logo {
+      position: relative;
+      width: 3.5rem;
+      height: 3rem;
+      overflow: visible;
+      flex: 0 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+    .brand-logo img {
+      position: static;
+      width: 4.5rem;
+      max-width: none;
+      height: auto;
+      transform: none;
+      mix-blend-mode: multiply;
+      pointer-events: none;
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      height: 18px;
+      width: 18px;
+      border-radius: 50%;
+      background: #10b981;
+      cursor: pointer;
+      -webkit-appearance: none;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+      border: 2px solid #ffffff;
+      transition: transform 0.15s ease;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.18);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+
+    [dir="rtl"] {
+      text-align: right;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(16, 185, 129, 0.45);
+      outline-offset: 2px;
+    }
+
+    #runtime-status {
+      max-width: min(92vw, 42rem);
+    }
+
+    @media (max-width: 900px) {
+      #main-header {
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        padding: 0.5rem;
+      }
+
+      #spec-picker {
+        order: 3;
+        width: 100%;
+        max-width: none;
+      }
+
+      #main-toolbar {
+        max-width: 100%;
+        overflow-x: auto;
+        padding-bottom: 0.125rem;
+      }
+
+      #main-toolbar > * {
+        flex-shrink: 0;
+      }
+
+      #current-spec-card {
+        top: 0.5rem;
+        left: 0.5rem;
+        max-width: calc(100% - 1rem);
+      }
+
+      #product-metrics-card {
+        top: 9.5rem;
+        left: 0.5rem;
+        width: min(16rem, calc(100% - 1rem));
+      }
+
+      #inspector-card {
+        top: auto;
+        right: 0.5rem;
+        bottom: 8.25rem;
+        left: 0.5rem;
+        width: auto;
+        max-height: 42vh;
+        overflow-y: auto;
+      }
+
+      #btn-show-inspector {
+        top: auto;
+        right: 0.5rem;
+        bottom: 8.25rem;
+      }
+
+      #bottom-controls {
+        bottom: 0.5rem;
+        width: calc(100% - 1rem);
+      }
+    }
+
+    @media (max-width: 640px) {
+      #ui-subtitle {
+        display: none;
+      }
+
+      #current-spec-card {
+        font-size: 0.68rem;
+      }
+
+      #product-metrics-card {
+        top: 10rem;
+      }
+
+      #bottom-controls {
+        padding: 0.65rem;
+      }
+    }
+
+    [dir="rtl"] #current-spec-card {
+      right: 1rem;
+      left: auto;
+    }
+
+    [dir="rtl"] #product-metrics-card {
+      right: 22rem;
+      left: auto;
+    }
+
+    [dir="rtl"] #inspector-card,
+    [dir="rtl"] #btn-show-inspector {
+      right: auto;
+      left: 1rem;
+    }
+
+    @media (max-width: 900px) {
+      [dir="rtl"] #current-spec-card,
+      [dir="rtl"] #inspector-card {
+        right: 0.5rem;
+        left: 0.5rem;
+      }
+
+      [dir="rtl"] #product-metrics-card {
+        right: 0.5rem;
+        left: auto;
+      }
+
+      [dir="rtl"] #btn-show-inspector {
+        right: auto;
+        left: 0.5rem;
+      }
+    }
+
+    /* ===== Premium UI preview theme ===== */
+    :root {
+      --jt-ink: #142033;
+      --jt-muted: #667587;
+      --jt-line: rgba(116, 134, 151, 0.22);
+      --jt-primary: #0a8162;
+      --jt-primary-dark: #07664e;
+      --jt-primary-soft: #e8f7f1;
+      --jt-navy: #17263a;
+      --jt-glass: rgba(252, 254, 255, 0.92);
+      --jt-shadow: 0 20px 52px rgba(35, 50, 66, 0.14), 0 3px 10px rgba(35, 50, 66, 0.07);
+    }
+
+    @keyframes ui-rise {
+      from { opacity: 0; transform: translateY(7px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @keyframes ui-rise-centered {
+      from { opacity: 0; transform: translate(-50%, 7px); }
+      to { opacity: 1; transform: translate(-50%, 0); }
+    }
+
+    body {
+      color: var(--jt-ink);
+      background: #b4bcc6;
+      letter-spacing: -0.006em;
+    }
+
+    #main-header {
+      min-height: 68px;
+      padding: 0.68rem 1.35rem !important;
+      background: linear-gradient(180deg, rgba(255,255,255,0.97), rgba(247,250,251,0.94)) !important;
+      border-bottom: 1px solid rgba(121, 139, 154, 0.2) !important;
+      box-shadow: 0 10px 28px rgba(32, 49, 64, 0.08), inset 0 -1px 0 rgba(255,255,255,0.8) !important;
+    }
+
+    #main-header::after {
+      content: "";
+      position: absolute;
+      left: 1.35rem;
+      right: 1.35rem;
+      bottom: -1px;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, rgba(10,129,98,0.3), transparent);
+      pointer-events: none;
+    }
+
+    .brand-logo {
+      border: 0;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    #ui-brand-title {
+      color: #152238 !important;
+      letter-spacing: -0.025em;
+    }
+
+    #ui-subtitle {
+      color: #788696 !important;
+      letter-spacing: 0;
+    }
+
+    #ui-std-tag {
+      color: #087156 !important;
+      background: #edf9f4 !important;
+      border-color: #bfe7d9 !important;
+      border-radius: 999px !important;
+      padding: 0.18rem 0.55rem !important;
+    }
+
+    #spec-picker {
+      min-height: 42px;
+      padding: 0.28rem !important;
+      border-radius: 14px !important;
+      background: rgba(239, 244, 246, 0.92) !important;
+      border-color: rgba(133, 151, 164, 0.24) !important;
+      box-shadow: inset 0 1px 2px rgba(50, 67, 82, 0.05), 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    #spec-picker > span {
+      min-height: 30px;
+      color: #536374 !important;
+      padding-left: 0.68rem !important;
+      padding-right: 0.8rem !important;
+      border-right: 1px solid rgba(133, 151, 164, 0.2);
+    }
+
+    #spec-buttons-scroll {
+      padding-bottom: 0.12rem;
+    }
+
+    #spec-buttons-container button {
+      min-height: 31px;
+      padding: 0.38rem 0.72rem !important;
+      border: 1px solid transparent;
+      border-radius: 10px !important;
+      color: #647386 !important;
+      transition: transform 160ms ease, box-shadow 160ms ease, background 160ms ease, color 160ms ease;
+    }
+
+    #spec-buttons-container button:hover {
+      color: #087156 !important;
+      background: rgba(255,255,255,0.9) !important;
+      box-shadow: 0 4px 12px rgba(41, 62, 77, 0.08);
+    }
+
+    #spec-buttons-container button.bg-emerald-600 {
+      color: #fff !important;
+      border-color: rgba(6, 111, 82, 0.75) !important;
+      background: linear-gradient(135deg, #0d9470, #087257) !important;
+      box-shadow: 0 7px 16px rgba(8, 114, 87, 0.22), inset 0 1px 0 rgba(255,255,255,0.2) !important;
+    }
+
+    #main-toolbar {
+      gap: 0.55rem !important;
+    }
+
+    #main-toolbar > div {
+      background: rgba(241, 245, 247, 0.92) !important;
+      border-color: rgba(133, 151, 164, 0.24) !important;
+      border-radius: 12px !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    #main-toolbar button,
+    #lang-selector {
+      border-radius: 9px !important;
+    }
+
+    #main-toolbar button {
+      transition: transform 150ms ease, color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+    }
+
+    #main-toolbar button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 5px 12px rgba(33, 50, 65, 0.08);
+    }
+
+    #main-toolbar > button {
+      min-height: 34px;
+      border: 1px solid rgba(12, 29, 46, 0.7);
+      border-radius: 11px !important;
+      background: linear-gradient(135deg, #1c2d43, #111c2d) !important;
+      box-shadow: 0 8px 17px rgba(17, 28, 45, 0.2), inset 0 1px 0 rgba(255,255,255,0.12) !important;
+    }
+
+    #canvas-container {
+      background: #b6bec8;
+    }
+
+    #canvas-container > canvas {
+      position: absolute;
+      inset: 0;
+      z-index: 1;
+    }
+
+    #canvas-container::after {
+      content: none;
+    }
+
+    #current-spec-card,
+    #product-metrics-card,
+    #inspector-card,
+    #bottom-controls,
+    #btn-show-inspector {
+      background: linear-gradient(145deg, rgba(255,255,255,0.97), rgba(247,250,251,0.92)) !important;
+      border: 1px solid var(--jt-line) !important;
+      box-shadow: var(--jt-shadow) !important;
+      backdrop-filter: blur(20px) saturate(145%) !important;
+      -webkit-backdrop-filter: blur(20px) saturate(145%) !important;
+    }
+
+    #current-spec-card,
+    #product-metrics-card,
+    #inspector-card {
+      overflow: hidden;
+      animation: ui-rise 420ms ease-out both;
+    }
+
+    #current-spec-card::before,
+    #product-metrics-card::before,
+    #inspector-card::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #0b8c69, #62c69f 64%, rgba(98,198,159,0));
+    }
+
+    #current-spec-card {
+      min-width: 20rem;
+      padding: 0.95rem !important;
+      border-radius: 18px !important;
+    }
+
+    #current-spec-card > div:first-child {
+      margin-bottom: 0.38rem !important;
+      color: #087156 !important;
+      letter-spacing: 0.01em;
+    }
+
+    #spec-sku-display {
+      color: #16253a !important;
+      font-size: 0.96rem !important;
+      letter-spacing: -0.012em;
+    }
+
+    #spec-dim-display {
+      color: #667587 !important;
+      line-height: 1.45;
+    }
+
+    #ui-hint-drag {
+      margin-top: 0.55rem !important;
+      padding: 0.42rem 0.5rem;
+      color: #657486 !important;
+      background: rgba(238, 243, 245, 0.76);
+      border: 1px solid rgba(130, 149, 163, 0.14);
+      border-radius: 9px;
+      line-height: 1.45;
+    }
+
+    #ui-scale-note {
+      margin-top: 0.42rem !important;
+      padding-left: 0.5rem;
+      color: #617080 !important;
+      border-left: 2px solid rgba(10,129,98,0.45);
+    }
+
+    #product-metrics-card {
+      width: 17rem !important;
+      padding: 0.95rem !important;
+      border-radius: 18px !important;
+      animation-delay: 70ms;
+    }
+
+    #product-metrics-card > div:first-child {
+      color: #344457 !important;
+      margin-bottom: 0.55rem !important;
+    }
+
+    #product-metrics-card > div:first-child > span:first-child {
+      background: linear-gradient(135deg, #e8f7f1, #d8f0e7) !important;
+      border: 1px solid #c4e8da;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.8);
+    }
+
+    #metrics-grid > div {
+      min-height: 67px;
+      padding: 0.65rem 0.72rem !important;
+      border-radius: 12px !important;
+      border-color: rgba(124, 143, 158, 0.18) !important;
+      background: rgba(249, 251, 252, 0.9) !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.9);
+    }
+
+    #metrics-grid #metric-weight-item {
+      border-color: rgba(10,129,98,0.2) !important;
+      background: linear-gradient(145deg, #effaf6, #e6f6f0) !important;
+    }
+
+    #metric-area-value,
+    #metric-weight-value {
+      font-size: 1.42rem !important;
+      letter-spacing: -0.035em !important;
+    }
+
+    #inspector-card {
+      top: 1.15rem !important;
+      right: 1.15rem !important;
+      padding: 1.1rem !important;
+      border-radius: 22px !important;
+      animation-delay: 110ms;
+    }
+
+    #inspector-card > div:first-child {
+      padding-bottom: 0.82rem !important;
+      border-color: rgba(129, 147, 161, 0.14) !important;
+    }
+
+    #card-layer-tag {
+      color: #087156 !important;
+      background: #e8f7f1 !important;
+      border: 1px solid #c7e9dd;
+      letter-spacing: 0.07em !important;
+    }
+
+    #card-title {
+      margin-top: 0.42rem !important;
+      color: #152238 !important;
+      letter-spacing: -0.018em;
+      line-height: 1.28;
+    }
+
+    #card-subtitle {
+      margin-top: 0.15rem;
+      color: #718091 !important;
+    }
+
+    #btn-close-inspector,
+    #modal-close-icon {
+      color: #7b8998 !important;
+      background: rgba(239, 244, 246, 0.8);
+      border: 1px solid rgba(129, 147, 161, 0.16);
+    }
+
+    #card-desc {
+      margin-top: 0.82rem !important;
+      color: #59697a !important;
+      font-size: 0.77rem !important;
+      line-height: 1.68 !important;
+    }
+
+    #layer-properties-grid {
+      gap: 0.38rem !important;
+      padding: 0.42rem !important;
+      border-color: rgba(129, 147, 161, 0.16) !important;
+      border-radius: 14px !important;
+      background: rgba(238, 243, 245, 0.72) !important;
+    }
+
+    #layer-properties-grid > div {
+      min-height: 54px;
+      padding: 0.52rem 0.58rem;
+      margin-top: 0 !important;
+      border: 1px solid rgba(135, 152, 165, 0.12);
+      border-radius: 10px;
+      background: rgba(255,255,255,0.84);
+    }
+
+    #layer-properties-grid > div > div:first-child {
+      margin-bottom: 0.16rem;
+      color: #8793a0 !important;
+      letter-spacing: 0.025em;
+    }
+
+    #layer-properties-grid > div > div:last-child {
+      line-height: 1.35;
+    }
+
+    #inspector-actions {
+      margin-top: 0.72rem !important;
+      padding-top: 0.72rem !important;
+      border-color: rgba(129, 147, 161, 0.14) !important;
+    }
+
+    #btn-isolate {
+      min-height: 34px;
+      color: #087156 !important;
+      border-color: #a9ddca !important;
+      background: linear-gradient(145deg, #effaf6, #e4f5ee) !important;
+      border-radius: 11px !important;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.85);
+    }
+
+    #btn-isolate:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 7px 15px rgba(10,129,98,0.12), inset 0 1px 0 rgba(255,255,255,0.85);
+    }
+
+    #btn-isolate.bg-amber-100 {
+      color: #fff !important;
+      border-color: #263c53 !important;
+      background: linear-gradient(135deg, #243a52, #17273a) !important;
+      box-shadow: 0 8px 16px rgba(23,39,58,0.2) !important;
+    }
+
+    #ui-btn-pullback-side {
+      min-height: 34px;
+      border-color: rgba(129,147,161,0.22) !important;
+      border-radius: 11px !important;
+      background: rgba(248,250,251,0.88);
+    }
+
+    #btn-show-inspector {
+      border-radius: 14px !important;
+    }
+
+    #bottom-controls {
+      bottom: 1rem !important;
+      max-width: 44rem !important;
+      padding: 0.92rem 1rem 0.98rem !important;
+      border-radius: 22px !important;
+      animation: ui-rise-centered 450ms ease-out 130ms both;
+    }
+
+    #explode-percent {
+      color: #087156 !important;
+      background: #eaf8f3 !important;
+      border-color: #bee5d7 !important;
+      border-radius: 8px !important;
+      padding: 0.18rem 0.42rem !important;
+    }
+
+    #ui-btn-assemble {
+      border: 1px solid transparent;
+      border-radius: 9px !important;
+    }
+
+    #ui-btn-explode-all {
+      border: 1px solid rgba(18,34,52,0.72);
+      border-radius: 9px !important;
+      background: linear-gradient(135deg, #24384e, #17263a) !important;
+      box-shadow: 0 6px 13px rgba(23,38,58,0.16) !important;
+    }
+
+    #explode-slider {
+      height: 6px !important;
+      background: #dce5e9 !important;
+      box-shadow: inset 0 1px 2px rgba(56,73,88,0.12);
+    }
+
+    input[type=range]::-webkit-slider-thumb {
+      width: 20px;
+      height: 20px;
+      background: linear-gradient(135deg, #16a17b, #087156);
+      border: 3px solid #fff;
+      box-shadow: 0 4px 10px rgba(8,113,86,0.28), 0 0 0 1px rgba(8,113,86,0.16);
+    }
+
+    #layer-tabs {
+      gap: 0.42rem !important;
+      margin-top: 0.72rem !important;
+    }
+
+    #layer-tabs button {
+      min-height: 31px;
+      padding: 0.4rem 0.28rem !important;
+      color: #657486 !important;
+      border-color: rgba(129,147,161,0.2) !important;
+      border-radius: 10px !important;
+      background: rgba(248,250,251,0.92) !important;
+      transition: transform 150ms ease, background 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+    }
+
+    #layer-tabs button:hover {
+      transform: translateY(-1px);
+      color: #087156 !important;
+      border-color: #88cdb5 !important;
+      box-shadow: 0 5px 12px rgba(38,58,72,0.08);
+    }
+
+    #layer-tabs button.border-emerald-600 {
+      color: #07684f !important;
+      border-color: #48b28d !important;
+      background: linear-gradient(145deg, #effaf6, #e2f4ed) !important;
+      box-shadow: inset 0 0 0 1px rgba(72,178,141,0.12), 0 5px 13px rgba(10,129,98,0.09) !important;
+    }
+
+    #btn-restore-top,
+    #shift-restore-badge {
+      border: 1px solid rgba(255,255,255,0.88) !important;
+      background: linear-gradient(135deg, #0e9470, #07684f) !important;
+      box-shadow: 0 13px 28px rgba(7,104,79,0.25), inset 0 1px 0 rgba(255,255,255,0.23) !important;
+      letter-spacing: 0.005em;
+    }
+
+    #btn-restore-top:hover,
+    #shift-restore-badge:hover {
+      transform: translateY(-1px) scale(1.015) !important;
+    }
+
+    .btn-pulse {
+      animation: pulse-glow 3.4s infinite ease-in-out;
+    }
+
+    #specs-modal {
+      background: rgba(14, 24, 37, 0.62) !important;
+      backdrop-filter: blur(9px) !important;
+    }
+
+    #modal-card {
+      padding: 1.55rem !important;
+      border-radius: 24px !important;
+      border-color: rgba(145,160,173,0.2) !important;
+      background: linear-gradient(145deg, #ffffff, #f7fafb) !important;
+      box-shadow: 0 30px 80px rgba(8,18,31,0.3) !important;
+    }
+
+    #modal-card table {
+      overflow: hidden;
+      border-radius: 13px !important;
+      border-color: rgba(129,147,161,0.2) !important;
+      background: #fff;
+    }
+
+    #modal-card thead {
+      color: #3f5063 !important;
+      background: #edf3f5 !important;
+    }
+
+    #modal-note {
+      border-color: rgba(129,147,161,0.16) !important;
+      border-radius: 12px !important;
+      background: #f3f7f8 !important;
+    }
+
+    #modal-close-button {
+      border-radius: 10px !important;
+      background: linear-gradient(135deg, #24384e, #17263a) !important;
+      box-shadow: 0 7px 16px rgba(23,38,58,0.18);
+    }
+
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: linear-gradient(90deg, #afbec7, #91a5b1);
+      border-radius: 999px;
+    }
+
+    button:focus-visible,
+    select:focus-visible,
+    input:focus-visible {
+      outline: 3px solid rgba(10,129,98,0.3);
+      outline-offset: 2px;
+    }
+
+    @media (max-width: 900px) {
+      #main-header {
+        padding: 0.55rem !important;
+      }
+
+      #current-spec-card {
+        top: 0.5rem !important;
+        left: 0.5rem !important;
+        min-width: 0;
+        max-width: calc(100% - 1rem) !important;
+      }
+
+      #product-metrics-card {
+        top: 10rem !important;
+        left: 0.5rem !important;
+        width: min(17rem, calc(100% - 1rem)) !important;
+      }
+
+      #inspector-card {
+        top: auto !important;
+        right: 0.5rem !important;
+        bottom: 8.6rem !important;
+        left: 0.5rem !important;
+      }
+
+      #bottom-controls {
+        bottom: 0.5rem !important;
+        width: calc(100% - 1rem) !important;
+      }
+
+      [dir="rtl"] #product-metrics-card {
+        right: 0.5rem !important;
+        left: auto !important;
+      }
+    }
+
+    @media (max-width: 640px) {
+      #product-metrics-card {
+        top: 11rem !important;
+      }
+
+      #layer-tabs button {
+        font-size: 10px;
+      }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+      }
+    }
+  </style>
+</head>
+<body class="bg-[#b4bcc6] text-slate-800 h-screen w-screen overflow-hidden flex flex-col antialiased">
+
+  <!-- 顶部主导航与规格/语言栏 -->
+  <header id="main-header" class="relative z-30 bg-white/95 backdrop-blur-md border-b border-slate-300 shadow-sm px-4 lg:px-6 py-2.5 flex items-center justify-between gap-4">
+    <!-- Brand & Title -->
+    <div class="flex items-center gap-3 shrink-0">
+      <div class="brand-logo" aria-label="佳拓公司 Logo">
+        <img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAbMAAAGJCAIAAACPbkobAAAACXBIWXMAAA7EAAAOxAGVKw4bAAAgAElEQVR4nO3deWBdV30n8N/vd9+m3ZJlWV7i2LHjrM6+koXsayFsSSBQCEvKTheYMBRoaTtLmc60tFNm2DowtDDtUHamadMmQEJCQkISO3vixLFjy5tka5fedn7zxzn36vnGebr36T096+r7aQFZ79znK8v+6tyz/A6rKgEAQAVp9g0AABxxkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhKWafQNQT7d/5TNPbn+m2XfhjE6OTRemqzQolUtElPJSZVMmopTnlcozH5xzeVc6I0xqyl45+LxtKZ69xPNSZVMiolSaS0UtlzQ1vnLgwC5mXr109cDBnSy0uueogeGdq3pWDwzvZOFV3asHRnYy06ru1btHdwnriiWr94wOsNDKrtV7R3ex0IquVXvHBvwPdolQf+fqfRO7hGl5x6p9k7uWd6zaP7Grr33VPP5xRpKRXGeuuzPb0+X+u6cz29OZ627PdDFzs+9uIWFVbfY9QH1MF/IX/97VxVKx2TdSH6+5uttLxfvnPD5W2r29IGwRM7EQE7MQuV8ys/8xEwsLK9nmwswk7hJiYZGZZswkQsJMtgFTs3Iml2q1YdeV7ek8NP66sj25dKttNjw1NDS158Dk3qHJvUOTe4Ym947lhz996Zeac9MLEPqMyfHI848lJhaPPq6lhj7Owf2lxtzOvGpLd1b2+zpz3V3ZpZ3+xxkvW9k4X5oanNwzNLln576tgxM2BPccmNpXMuG/CV2ZpfP7dSxsSMbkePCZh5p9C3XT25+Je0l+2kxOGDniHxmZpCPb1TnT4wvFX7cnh/lXqaoHp/dvP/jc0OQeG4X2g4nCaMTft02W1ftLSTIkY3I88PTDzb6FukmnYyfc2Ei5MfcSm8epzmx30MsLxV97tku42szndHGyMvtcN3Byf1nn1CPuSC+Zy+WLDZIxIQ6ODz+/a2uz76I+1h6Xq+FRemxkvh+lV3QcvaJjTXfLspZ0e2X8tWe6olxu1Byc2j+TgBN77QeTxbFG3G17tqcRb5tUSMaEeOiZXydmMm3p8myEVodQ1fy0zsOsyAl9Z3Tmllx17FuWti1PSdRH/qnixODk7qGJvZWdwYNT+43OXz+3VTrm7fdKACRjQjzwTHIepT0v9iX5KdOQW/Gt7d64qmvNtSe8tbetv0ozo+UDk/tDD8KDk3umihMNvb1ZFYvFpe0rmnsPCwuSMSEefDoh0y/LVmRqeJQeGWrUo7QnqSs2vuHNp777sK++OPjM7rHt+6d27hrZNji5Z3h6v9HGZnRtCuPZ09ec2ey7WEiQjEmwc/+ugaHdzb6L+uhbHftRulTU4aFy3fdzMcut53zs3LWXpl4xWTw0NvTwjvt2DD+vnJcU7x7fNjh5RP/5t8vyJe2YgYkByZgEv0rQo3S2JXbCjTdg7qUj2/W56/57d2t4DeC2wW0Pbv353vEBFvVSmkoJGZ3P4cIalEql5a1YshMPkjEJEjPI2LM85q4XIiIaG65zMF19wptuOuM9Iodk9Fh+7N8e+6dtQ1tV1EsRExExKRFz+chOxqlxPWHDpmbfxQKDZEyCh575dbNvoT7617TEvaRc0skxQ/Wblb5o/VVvPet9oU8+vPWhe565u2jy4pHdPcguFklJjTmikzE/4Z17zAXNvosFBsm44D2z47nhiZFm30V9pDOxE268fgu8W9KtN5956+XH/0bo89/75Xef2vWECKdSRKqut0hKbsH2Ed1nzE8VO1Or1vQd1ewbWWCQjAteYjYFtnTEX61Tx0dppfdf9PEz15xf+blCofC1u742OLqPRZWZSEjEdhQNs8dETMI6x90pDTV80Fxx7LnNvouFB8m44O0a3L2u/2i7zFuJ/PXe6j6jpKT+r7XiFVLSik+S/w4afFDRXCuuI1WlmcZUeRXNNCYlLZVL0defrzw69tYXY3RitD7JeOzyE14Zi1/516/tH90rHjOLEBET+0/QHjOpYRUlLh+pT9OlUokLrVeddE2zb2ThQTIueL9/yyeafQuHly/mL/n4ddVLNFZqaYvdZxwfKavWoSBYZ67zs9f+WeiTX73zf+0e3uMJMQmzEokf/8wspKQqpMREtkbkEWj4gFndvXZN35pm38jCg5re0Cj3P/lg9FjMtdYScHV5lO5uXfrHr/+r0Ez0//jxl3ceGLDFG1XLpKqsrMJMSobUkBKzqtje8pG4urtUKk1N0DWbwsOmEAWSERrlrkd/Fr3xqmPa4j5Kq9G61Nd52znvXdaxvPIz37/vJzv2v+zfDTN5xMJKKkoUVL51z9VUx3nxuhrcU17asvzyU65o9o0sSEhGaIhSuXTP4/dHb59rjf0oPTFWh/G9XLrlwg2XVX5m2+6XHnruIRJR44ZVmZTswkUiUhJiYiJiZbX/O9ebaIDR4UIxz9efdkOzb2ShQjJCQzz07K/HJqNW06qhhAQRjdbjUfrW13yk8pfGmK/e8Y1Sqcz28VlYDdn8I3JB6T5hI5LsWQpHlmKxOD5iVnYddc2p1zf7XhaqI+6bCslw16M/j964P/6stKqOHZzrvEdrpu3ijYc8bH7z3/7PwOBu20tkZVViz/52Rnmm42gMqRARKSsdeYOMw4MmxdnrTnlDLp1r9r0sVEhGqD9V/dnme6O3b+uKvUZictyU5zwhfOWJh3SpXtqz40s//htmT4hViYSE7bAiMYmo2/kixMzKRKqGlW0P8shxcLBQLOjx/ZuuOwNzL7VDMkL9bX7h8aHRA9HbS/y/hqNz7jAu71xx81m3Vn7mSz/5WqFUEGGjSqysZNz6UCZWZVYybp0nCymTS84jyPCB4vSkdrf0fujK32v2vSxsSEaov1iP0quOydZQRWL04FwHGS857qrKlTq7h/bY2/aY3RZAZlYbioZcPAoTKSmrsX3JI6rLOHqgOD1pMpK75bz3LetAcZ05wUpvoEKp8O2f/+PKnv5dg3uIaGXP8oGhPSuX9gf//ZoTzwkaZ9PZtctnWTl892MxkrG1I/ZfwqmJcrGgczwm8Ky1h+x4+eEv/5+b6hYJOgxqH6pdCpKKKrEQK4khIyxEboK6uUql0sSY5qeMx3LeuksuOfHyZt/RgodkBPrbn/7Df//xV5jIlaO2D5AVy5f/4gf/M2j8+nOv/Q/v+nSVd3tmx3Oxyuhy/ITbvSM/PFhgYUmR5zF77AmnUux5LB6Lp55HHjMLSYqESYTYI2ISjzyPmElLsmbpuuANRyZGH3r2EfuxsDCxsqgqiRArKdt9gexK7CjZNd+kpOLPWTdNsVgcH6VyUZn5pL4z33Xxbc29n2RAMgLd8fCd0RtfdupF1RvEWuDdW9PZBnteLqhbYG3XW5Owe/z1mFjIE/Y8lhRJir0Uex6nUiwep1KUTrOXCq+0+c7Pv5cv5u3HbkWOuiBUQ5y2XUNlJiVlZiZ2rzPVYXNirUqlUiGv+Skyhkjp+L5TP3TFJzpyOAmrDpCMQNv2bo/YMpfOvubEWQq3xHqU7unNxe1zDQ8Vy0Wd4wh5+6GHL//4gTvacm32YxEhIcMspGpnh5RIDbGo3fHCpEbVY2JSNs0arM9Pl/PTagwpkbBsXH7Kb1/56Y4WxGJ9YAZmsfurH3/ZRC6Hc/6J5+Qy1c5peWnP9hd3vxTjt5fYiwF378jHveSVrlx/U/Dx87te2LFvpzHuTtiuyVElnikr5B/Yym5boNjF3oZUdH6fpotFUyyYyXGTz9s7o4xkT1t5HmKxvtBnXOx+8tAd0RtHeJSO02Fcno7eOOCVW9b0L9uxb2AmkJSMkriqakzq115z+/qUlFTZvqpKaujSY18XXH33oz8nouDMPzuyKHbmhVlVhZhY2Q292p0vbqUj24JrjadKpqzGkCmTUbIbF5moLbvk3DWX3nTG23O59nm4jcUDybjYDY4ORWzpiXfJpgurt7k7TjJ298Y+JnBJrveOz3097lXV2cf/8kyfUVSVmJVYlITZkPHsqh0SJtubVNeNbNiqnVKprMrGkDCLkHh8aAJr2kuv7lp/5fE3nL/htQ25g8UNybio3fvkfdEbn7HhlK62zioN9hzY+9SOZ2L89vEzZVP/ebGvqWrfwf3P7dxKRDPVKZiCohFKakeclFiNHdwUuw1GyahbtVO3mykUCqUim7KqerZf6qUO82/UY6+3ffkJfWdecdxvrFiyum6/PVRAMi5q/+ee70ZvfNmpF1dvcPdj90R/t86eVA2Tuqf2vyb2NVU9/tKT9oMgGZlnSncLiRJ5dmCRxY482v6i2Adp5Tnum56cKBTzXC4ZY9iOZ3oekZAnh84CKBFRa6q1u33F2u4Tzl932TG9G+fy+0J1SMZFbfO2x6M3nnWQ8e4463V6lsUudtCW6Vy/9KS4V1X35EtP2w9m+ozKtlK3/ZBU1WM3zEhsiDw35eKfIBi/6zs1WZyc0MKUKReVPPKYxSNmEi94YxeLzJSRTEumpbOla1nr6tVdxx67dNP6ZcfX68uHV4NkXLzuffL+6WLUed4Tjtq4oqe/SoMDYwcf3bol+u/OonEz5eTl50i9S349td09/pfLfp9RhNhV7PYr1BKpURKbV8ysRlWEyUZlpMfp6anixGh5atIU8kpkRw+ZhTxl+/CeSWVbMtlsqiWbzeXSuY6Wrt7W3t6OZV2tPSs6jzqq+5hcqrW+XztUgWRcvL70z1+L3njWDuPPNt8bTO/OKttaS8DV/VGaiJ70k7Hkl+5ht2RRySNSw24Nufi7YIhcvR27ZkaUZtnBPXqgOLivUJhWFiMiacm0ZFtyqWw205JN59qyrT0dPb3tvd1t3Uvae5a29fa0L13a2ZdLoYBYMyEZF6+tu7dFb3zprIOMcWal+5a3csyZi2yq5bhlp8W6ZFZ7D+wbnxq3H1ckI7t6Y8wu//ydNkTuOC5WcfPSWu1sRFPWF56Y8CjX07qmbWn7yp7+o5etbW/t6Mi1tbe0L2lf0tfZ19PRU98vCuoCybhI7RoaiH5WwOrelRtXra/SYHxq4lfP/jr67+5lord1Tuo7KyW1rH+sYsyPxcpkJCE1hjxRQ8xKxKqGiQ2TR+xvKzesrMrE/GrHY01NlF94tLhiydFvufDNG1atP/6ojakU/rktGPhWLVLfuPtb0RvPOit9z+P3FUvFiO+WyVEN+0ZO6T8/Qqt4ShXFb0v+zwl3iiqRrUbG5P+fO+yA2GMmNmSLShz+a8lPmwNb237/pg9dfsaldb9tmAdIxkXqF0/FOL4qwqx0jEfpZf1tcWdzU5I+se/smBfNrliRjEGyK5GdW1G7UIfJzhUJiZu0VlVmj9ntHnxFMqYlc+3Gd17zFpxOtYAhGRejfSP7o299IaLT159S5dV8MX/fkw9Efzcv/jPxcb2nZxswI1EOxhYrllaqqnuGJiWWslFOMdtqO8waHJeldpMglw4daGSSd57xiUb0cGE+oaLEYvRff/CX0Ru352Y5Cfr+Jx+cLkxHfLfajgk8dUVDgiZ4mk7JTBeBmQ2x8XuO/gFZxlaXYFWyO7DJbRIMPU2/+eTbEIsJgGRcjB587uHojS86eZZ/5/HKjvW1xt36IiwnL5+l9FltisYlY7piboSVhViMTT5j60kQi+swij/uaCdjmCuT8bje0y5ai3OpkgDJuOhMFaYm85PR23/yxo9VebVULt2zJcbm62xL7L9y63tObss0pL5WueT3Gb2KZJTgdBf7+Exqn7aVODjZQIXZViMj9VdxpiR946YPNuI+Yf4hGRedL/z4i9EbL1+yrPqCu4eefWR0ciz6G0ZfDR5o0KN05QxMZTISERllt7BR2R0Boyr2yZlVldiQuhNgjL9q59Jj3rCsbWWDbhXmGZJx0bl7S4yH30tOqWfZsZ7+bA1VJBo3bFfydwR6MjP8qaoq6lbp2AMOyE5VK7sZa/u/6vZYu0rfcuHR1zXoPmH+IRkXnZHJ0eiN33PVO6q8qqo/23xv9HfLZGPPv2S8XFduadyrIiqboM84c2NsN04TB/9hIhISEmJblVHdp+2xB2qI6IS+M5a09DboPmH+IRkXlzseiXEYVsrzVvQsr9Jg8wuPx1r9U8MC7/U9dS6uUymYm/Yq5qZVjT1GwHYGjaohYmWyZ07bwrXs9gkKsx0feM2aqxt3nzD/kIyLy/ce+GH0xhtXbajeINasdGd3LccEXnrMG+JeEt3M07RX8Q+BWVmMEjO5td5MqsYu6mb7eSUm93Rt1KQlc2LfWY27T5h/SMbF5emdz0Zv/JHX/Vb1BrFK1bZ11LLrue5VJCoFO8fl0HFGtjUk7NMyu9kYO7xo7CS1vxnGEBsya5ZsrOx1QgIgGReRHz98R7EcdXdzS6blwpOqrSJ89uXndg0ORP/da5iV7s4ti3tJLDN9Rp5JRgnK0bL6Zx5UrtYhex61HWkUIlXT335UQ+8T5h+ScRH52599O3rj09dvqt4g1jGB7V2pGk59afSq6aDPGDxNe+K5nqKbaLEHEKr7FdnnafUnpZmIjZbRYUweJOMi8vLQzuiN33bpjdUbxErGtrbYj9KqesWxb4p7VSzBDExQKjydStu5FbuY0S/HSMHpqXbsUdida0qkRg2SMXmQjIvFcwNbYz3PVt8UuH3vjhfjFL6t4YS9jBf7zNW4ghMOgmQMlnyrErEwKQvZ0t42JA2zv2eamMmolk05hWRMHCTjYvG398R4lF7WNcvSvFgdxkyL1HAmc+O2vgQqZmD8ZBTPLi1iUVZDxEaJlNmOLFLFk7Vb5siKPmMSIRkXiwefj1FF4vXnzrKdI9YxgV1dLdEbO0q3nv2J2FfFVHpFFbJUKmUnX8rGfprFnjhtV+2wf96Bf7ggiZa15DGSMWmQjIvCC3u3jU5F3foiLB+7odp6nb0H9wUHS0WhHPVYhUBLpj3uJTUomWCc0U9G8fyl3MRCSmrElmsUZlHjdg2yO3ZaVbmseJpOICTjovCX/++vozde17+meoNYC7xrKzh72sr6HxP4SjMnqfrjjCKeOxnLPTe7w7CI1XYX2c1XMzMrszCVDeamEwjJuChs3vFE9MbXnj3LRrdYg4wdHbGjUZVuPv22uFfVoFhxkqqVEo+ZjDHE5KZaVFVppgqjuj2OwZRSWUtIxuRBMibf+PT4dDEfvf07qq7XOTg+/NjWLdHfrYZZaU8k48UfmowvOO2A/KdpT6Ri1Q65ImT+SVhu6wsLExk7FaNkTBnjjMmDZEy+f/jFd6JPDbdkcrlMtV7ezx67N/pxrFLT2QZHL9lYy2XxFYOn6WBCRVKuxo4hdhsCidmocHCAIPtT0/bBuqwljDMmD5Ix+e5+4u7ojc869vRZ3i1WFYmuXNwiEqr03vP/XbxrajXTZ/SflT1PjL0JUbcJRt2ZBvbrsOnoRiDtEayHluqBZEAyJlyhVNg5tCt6+9vfUu1sg4npiQefibH6p4a/X2kv09veH/uymrzyjGxhsU//Ru1ibxYlJlZjP8HB2h3/aVuJyONaimXAkQzJmHBfuvPL0asipr3UUctWV2lwz5b7X5kmr0pIKXYViWOXnRj3kppVnDcdPE17amuPKYnHtr43syERZiFVdo/USq4amYRKgkMyIBkT7q4nfhq98QlHHVe9wd2PxVjg3dqR5phlJFTpbWd+INYlc1EoFYLf2f6PuJFFEmbbOyQVW5KRVNkNSLpJGWXXw8Q4Y/IgGRNueGI4euPfeUO1o+/yxfx9Tz4Y/d04/l8uZl7ZNX8VvUp+TbagW+2JiLCWjT1a2rCy/6IGxXdspR0Kyu/gaTqBkIxJ9tM4Hca2XOsZG06t0uCXT/1qKj8V/Q1jr9Yh6m2vdrhC3RX8kQF7sIHdQG1LkDGRIRJld8Kq2jXfrqI3q73EXYc+Y/IgGZPshw/FONvgzPWzVM+OdUxgri0Te1aa6O1nzd+jNBEVikGf0WH23KodZbEnStsXxNb5ZjVqK/NwxT8ewThj4iAZk+zpXTF2N7/9kpuqvFo25Z9v+UX0d/MyscvrCMtpq8+Je9VcFIpunFH9aose2zkjZU9t5W7j1uswK7nFO0qGiZmVXSmKFJ6mEwfJmFh3P353xQzDLJj4nOPOrNLgoWcfGZ0ci/67l03sWelVXbPs1667YGuQ+pUrmcVOshhD6p8tTcxkymSnZNyWab+5GqxnTCQkY2L93S/+Lnrj5d2znLgS61E605KKf0ogvfG0amdbN0LeT8aZmr4iqsbfLMiqdkzR2MRUVSZDpMru84YY44yJhO9oYu0Y3BG98Ztf8/oqr6rqT+McEyjp2LmoSmcdPR/1dSpVJKM/A6P+ohx3TJbbBKjusGliW7BM7bM02d4jxhmTB33GZNq+f3v0sw08kduufleVBptffGJwdCj67x5M9UbXlp2PgowhU/lp+4Hxn/3FExG344WUiI2dnbEFJmwdW7UhyaR+wR2MMyYPkjGZvnV/jLMN1vcfU73B3//0O9HfzUt7HP9Z+qoTq3VaG2S64CdjMM6oTKriolBdrR2/28iq/u5p/9RpVYwzJhKSMZkefOFX0Rv/xjnXVG9w56/viv5u2VwtHag3nz7fg4yqGhQNCj5gT5TZMLFyMNhoi9jaeRdVNeKfr+q/FcYZkwfJmEC7DuwanhyJ3v7mi95Y5dV3/9cPEjMLRewIlrUUodUhultnOZCrESo3gM8koy1US0TiFvKo2jlpf8UOk7gWrOz2W6M+Y/IgGRPor+6McbZBa7Ylk8pUabBl2+Ms/hEAs+Ujp2o4JZAuP/7aGq6ao2J5JhlnxhnJHZ9qlFiJhUWVhVWNOxZLZabOrT0PBk/TSYRkTKDNOzZHb3zuxrOrN2BxZVqj5GMqHX+WVvVNZ7w99lVzVizN9G1LQQlbYSJle/40sxq1dcbs12xUmdR/yiabl8JSw7gqHOGQjEkzPjU+XZyO3v6Tb/6dKq9efvv19h++/Q8JV89HE3+3dCaVjXtJXZQqkjF4mrb1dFTJ+FPSdqO0PQyGiVnI+M/ZtowtykkkEp4CkuaLd8V4lO7t6OlbUm2N91hhRITVzsH6Gz+Uie1ULRGzVrwUs+gYERGdftS87ggMVI4zlmYOhCEiJqPkMdsKZGqfqtnuiJnZSe2OE1QUZ0wkJGPS3L/1l9EbX3ji+dUbiMds683YeVklQ+SfRK+2SCGRW8LoZWrJiI9e9u9ruGruiuYwfUZhtsdgecJG1VMm96yshsizPxbE/QSwPyAwyJhI+KYmijFmfHo8evtbL6+2Vua1t18pdq+HX3yLlDw/H/2DRW2NLmZ2K6BjaUm3pVLN+UtYKh+mz+hCn9UQea5zaPvE7LEo+YdN24XeSsSKJTuJhG9qotyx5Z+iN/bEO2rZqioNCjrN4s5FUf/APJuPosFDtHu4Vq1lFuKsdefVcFVdBLMu4WMPVO0IKrsDYf2iEqREQqJiv1hlZTYYZ0woJGOi/MuWO6I3PqZ/bfUGKc9thlO1+Ud+tRm7yk+D8UcNnrDjUKVbL/xQvGvq55BxxpnZGDt0oPYLtGe/EDEZY5iFjB12tKMIzERqMM6YSEjGRNm6b2v0xr919burvHrlp691cy8uKdw2Yjvnwv5WYmVVY+vPxL5bT6S9GdulrVLFqdkzuwPtk7K44hFqlD07ViAekyqLnZB2pcpUsQEmofBNTY4f/vr75Yp/7dVl09lLN11cpUFRJ4XFzr2ov3LFiO022nIzaqORhNho1C0yFdYuXR/3kjoq+X1GT7yZ6husRKxqa0ew+DMuSqokwsTitlDbwVdVg6fpRMJ6xuT4wSPfi95409GzHF7qeSJCwuQJeXaGVkSERYjFbhZh28WSuCcEEtlH6Y9d+cn419VNMOuSTlVEmxKzsCorq5KKGz21tceYSP0TBJnc6VmYm04kJGNy7BnZE73xjRdU2yv9uj+6QTxiYRZmG39+PgqzzUcSf1eMkIn/KC3Mq3rm75jAVwqeplNeRbQxkRpiv5wOkRIbUqOqagwTKxlSd34WsSrWMyYTftwlxNMDT2mc/SeXnXJJlVendYRFbAFCrThF1GMytjNFxKTGbiM2tQwy9i9ZHfuaugr6jKlDos2ehKXu4AMlJleUzNasNUQe27q2toSjQXHGREIyJsT3Ho5RQrGnvad6A/HsZmm1+0Eq8lHFnrxMbJhFVVWL5di5qEQfvux3415VXzPJWLGg0j4vi3taJhLWYFW3v0CJScuGPBG1fUYP/4gSCN/UhNj88qPRG19zxhVVXr3tC+9zoyx26SITqfr5aCtZq6p9rmQl0qizPjM89k5YfXLsy+qq7K9nrJxcttMu5NYqqTvqgNn+CdjxA3vgqt1RbdRgnDGR8E2tj+nS5EjhwGj+wFhxxKhhu9OWpCXd3pXp7m9r7Kl4z+5+diI/Eb39x67/YJVXd0xstQebmGBDtGEhdZtdlIyx89BqDx0tx0/GdX3NnJW2gj6jSBnwsugAABzxSURBVMVou7qd06z2R4Bh+1NCWYgMGVYi9oiMkqhRQ1jPmExIxhqNF0ZfGHlyx9hz20ef3zn+wlTpVYOpt2XFZ8/9ckNv5uv3fil647Zcm+dV+8ecSnnunLyg6ozYM6FcPUIR93DNqqVS/EdppXde+N64V9VdxQxMxZ+Gq7jIyirMTJ7bCiOqLMJ26be6jTHCWsI4YzIhGeOZLI5vHrz/0X2/eH54S8QjqDYtPbfRd/XcnmejN77g+Gob8r7w3T/33OOknWmpyEclMsy2LqHfeSwWYycjE52y5vS4V9Vd8DTtceXPCWXx1Kh/RKAR24l0vWT1z6R2jfE0nVT4pka1ef8vH9h957MHN8et5r+pt7HJODo5XFmeela/d8NHq7x69ws/EfHsNLe/C5DUP0DPsMtHIbXbYWroM3a2LIl7SSMEe6Ure9CsTGpY3LZAf/zA7oo0xEwqSkGXkVUN9sAkEr6ps3tx5KkfvPD17aMx+mWB9nTXuq4TGnBTM773SIxZ6b6uZT3t3VUaSMqzZ564ymP+LmlWMmqX6BAJkWFhKhRNDet1bjz3bbGvaYCZymP+OKPd88Mk/hGq9unauI9E/Moa/lyUstGy4BCYJMI3tZp9k7t+9OI3Hh98sOZ3OGnp2bZyfuPct/We6I0vPuGC6g3EcxUi2Lgd0jYf7Rkpahc628kXpUIhfi4Sv+7MaovM583MDIz/DUp5np2HJ/LrZdhdPu5ALFdlzf7cYGVVNegzJhS+qYc3URz7p21/d//uO00Na1IqnNLb2CpbU4WpvaMxtr785iW3VHn1jV+4zPNSdkWOip+PrtSOrazDLGRsiUalQj7SSGulvs6+uJc0SDDOGPQZ015a/XpjNvKDI19I1SinSGz1MReRwkbLGGdMJHxTD2PH6PP/68n/fDA/GOuqYpH2FVcPmt68dJSklb0MS+a/9TR2quFvfvE/ozdOean+7uXVGqRTtqiCK9ZakY/+/hrXeTSk5ULZxA5Gev1Zb4p9TWOUTLjP6Hkpd7K0nX8hVuPK1DKxR6pUJmVlsfuryVBZy+gzJhK+qWG/HLjzH7d+uWSizmm8eGD1eLmzxC3kpYyXnRLPozRxitkj4pQ0dknHgy/cF73xhv5jqjdgoeB0lyAfSUmF2HBl55EM56drWa/zhiMmGc3MCQczT9Mk7rmZiYTJHgRGapTZiAi5XxKL3SCJccakwjd1RskUv/P8lx7Y/a9RGu8Zbts3sUw5o15GxfOPKT5ETmopcx3LWH4seuMPXHVblVff/NeXpdNp9fe62ErdNh/9Ko3Mxtb2VhHKT8fuMebSzTkm8LCCU1WDM1E98VzXWFXFHYaltmijq8yrak+ZVbXDjWWDPmMy4ZvqjBYOfvXxP9kxNnvl14Ghln2jS0hSkvKqFCVU1Y+sP63et3mIu57+l+iNWzK584+rdkpfNpu2J9C7R2kitTs+KgpVqDAbIqJisVyOt3iJiOjC46pVhJxnwdx0ZTKyf5q0MKkh9VRUjJIosxq1x1ETkzARCcYZkwvfVCKiieLo/9j82d0TO6o3OzjMO/Z3kaR55l9QNTeu2VS/ezyMf306xqkvpxw9y82wMBGLqt0jrH6XSZVnOo+GjBAbnp6MP8So9InX3R77qoYJ1jMGyWifpu1pX0TMdv+LloU9F4RKRtVzryspo8+YVPim0mRx/Iub/2DWWHzy2azRNHmHeWo+rEzjS1++sP/56I1vOr/aAN9NX748k8kSqRomPiQfVSs6j0JiyAhNxk/GjpaOuJc0VHkmGd1nPC/lTg8M/iN2lzS7E1RtkW8mQ8ZTUaWyljyMMybRYv+mTpcmv7Tlc7vGX6zSplDULc+ncywUZ9zwLSuPrccNvqp/e+qfSibGA+0Fx1c7WjqXS9sdgeyR6kw+GluT1nYeDdtwNHlTjL+S8aLjXxv3koaqODvQf5pmUbv/z1Ujs8MHyrb0jp2dISF3/A0xU9mU8DSdSIv6m1o2pa88/ifbx56r0mb/gfK2XZ6XitkDVP2dExo7pvbDLf8YvXFvx9LqDdyaPiUlMobJr5sgQqrqVueIC8fJydhrPFXptiveH/eqhiodps8opOpOcVASduvalYXV1rE1rOLOPhC3bxLJmEiL+pv6oxe/8cLIk1UabN1WPDDqRpliiX9FbLtHBqI3vv6Ma6q8+va/uSzXkiNlY7tGYh+i2XYemcgTLVeE48R47GRMeV5LpiXuVQ0VJCNp0GdM2Y0+7nRtV7OW2aim7QpGUSYlu2rHHSCIWjuJtHiT8cmhh36280dVGjz3wvTwqNQWcuf1VFtQPXePvfywUtSRPmb+YNX1Oi2tWWZWJU9Z1W1xUfU7j8bORhgbjmWj+anYj9LHrWrs5vEazJThYPflsCe2IK2qCrOSena1joi4mrbKwXyNPVvWrvWBxFmkJ2SN5Ie+9cxfVmkwsDt/cNhw/JNCiYhUv3B2Y7cG//3D34je+Ojeo6s38FIiQvZQQBbyz8Ui/5NMRCTiCTHTxFj81TpKn3rDp2Nf1WBF/1TVYFWSuGq9RlmZ2Z6jbUs22rWMrnOpTDYimYkIT9OJtBiT0aj55tP/baI4+moNxsaKO3cVaoxFquHg5dh2HNgWvfGVp1Y72+A3v3GZCIm4EwFFSDwSjzxhYRKuCEdmT2hiLPajdCadXbbkSNkuHQhWegcdYE88Erv5hVWJvWDDtJ2nZrtuyR4To35PE8mYSIsxGf9l+z9sHX7i1V4tFotPPz1BtRyh7Gxob+zylIGRl8tx6lzcdP6NVV7t6GyZyURhOwPPTGx/WRmOzGVDk+Ox1+ucsuaUuJfMg4LfZ1S/khqL+MccuP2RZAcj1C7tVv+UaVI17M5TxDhjMi26H3f7Jwfu3P5/qzR45NEx5jmMHKl+8by31H55BN955JvRG+fSuWwmU6WBl2K7BsWtTPFr+xtDJCTExqgQkZAhHo/fYVSlj15XrVZusxRKBfeRn4zCojMHTbP61XuZ3Qoesgvi1S7rcTDOmEiLrs94x0vfrlJYbNuLo1rDqfIVmKg70z6Xd6huZGr4oe0xqkicvq7aDsVbvn6F7R6yENsHattDZBY5pOdo/398OPYgIzOvXLoq7lXzoFB0yWhmkpH9BUpuaJHUBLVqiVTJsBp3jpZd6Iin6YRaXMm4b3LgkX2/qNJg757pOQ4T9mUbWzThc//88Yjnz1gfuebDVV5dujTLh0y2+GceviIchYlIa+gzruxeEfeS+RH0Gf1ijCTikRD7+wWF3A8ENW5hD5MQiboDBt3jtoen6SRaXMl4/8A/V1nssvX54bnOnqh+4ewGVtnafuCFPaMxljEuaVuyump/rXKWif3hxcOGIwtPjJTiZDLZ0PnYb/x2vGvmS76Ytx+o/1XZzrFfhcwfaGQVZrF/VmprS5A7gZs0dFw1JMYiSsaSKf5q712v9qoxun/f9Nx/l+Ma1kXaP77nj/7l47GS+5wNZ1d59cYvhJd/Hz4c7SeJRg7GfpT2xKt+D000XXDJaCrHT1SZDZGxJ2IR242AtqqGYVvSW0WIRcSOSWKcMZEW0Y+7LYMPTBRftZrh4P6puf8WHalG/XlOl6Y/+ZPfKsSs/PXWC6qdRbV8nbxyZZJfhMseFaiuQqshYh2LP8i4rm9d3EvmzXTB/SAMRifEExI2anf/kdiTslwHUikYbGRSm5B2PSOeppNoEfUZ7x+oVs1wYNfEXH8D1d89+ZK5vsnhPDbwq9/+0dtj1Y+wM63r+tZWayCH/+6He47MzDQ+WlGBIRpVet8V74t3zTyayrtknDlEUNnFH5PaUkNuqY4ou3I7auvP2alqu2oHT9NJtFi+qYNTu7cOP/5qrx44MD01NaeTsKyrj67zqS+j0yPf3vLXv3r5fhP/7o5aelSVVz/w1d/M9L/qq8HJUMz2v3lkqIZZaTrv+MaetT0XwQzMzMmwwqQkzEJufwu7Re5BAR4i8uwqH3ckAuamE2qxfFMf2Xev0qsuxzl4IJ/JSKFgbCkFN6zkbwaLKPMqXbAalExpy74Hfvzc3w0M76x5FdEtF1Y7JjDVN1R92SazO0eVWIn1YPxk7GzpjHvJvClWjEtUHgijauykNKkyifolh+xJs8oqZOyztKv6jXHGhFosybhl8IEqr67f0FX1aiUqVG1ARLSsZcV/ebg+87A7R1/UMpeLta+szHjpK0+5skqDV3uUDrFnZk2MFkvxb+ZtF90c95J5U6pIxpljD4hZiImMIfZmOs6qhsn+eTHbH7CiwXIfjDMm0qJIxuHpwZcjHPAyR/undjf6t4ju+FXHz/1NbDQo08HB+FUkiH7zkrfP/R4aZKacRGUJW7sD0M9HJfXcDwd7hCKxqooIK5MYY6fsGX3GRFoUMzDVO4yJ9LGrqm3I+/APro1eL4OZDuyPesZsYHnXEVdColJlMprg2Gx3OqAhDQrVstsLyKwalCATJfLLESEWk2lRJOPjiywZe9uXHtu/oUoDz4v675mZJsZLNRwt/cbzb4h7yXyaKc5IFEz6C4syu1O2g7NUVZVMcICiGnVlbcUoKQ6BSarkJ+NkcXxr1cLdyfP5t/5pHd9taF/sDiOpvvMIfpQmolJpZnxgZszRTUczi63JqPYgQXtiGDMxqYo9CkFVhVSxZCepkp+MTw49VKWERPKs7lm9fvn6Kg0+9P1rYpWeHNobOxmz6cZuHp+7yhmYYJzRFo6orE5rz04l+1m2Q43uj45VcQhMgiU/GRfVIOOS1iVffe9Xq7eJ/ihNRAcHC1MTsQsyXnTiBXEvmWfFij5jcLwqia3pTarBckV3dKItKGGPlmVVVrbT1CjOmFQJT8ZiufDMgUeafRfzhIm/8p6vZbxq1RhDVSRmtX1rLXvJ//CtR9zZBiGVG4qCtY1CzGL7hOq2/rFdxGNs/Ur7R2eI1NavJcUMTFIlPBmfOfhoweSbfRfzQVj+003/pat1SfVm7//HK6Mn477d+fGR2B3Gjlx7qmH7x+vlsOOM/tHa7B6sbdluW+bcPWO7+Wkme84ixhkTK+HJuHhmpT/z+s+dvmb2vYmZqvW9KxULZtsztXQYLz75whqummfB3HTlzwlVZTXERkmZyRhSfxs1kyvKGBRmFCajGGdMrCQno1HzxNCvmn0XDZfxMr939SfPXX/+rC1v/+bt0TuMLz0/XSzEXqyjSr97wxFakLFSsO8l7c1EmzCriFESJiLx7PO0UXtqILsDBMnmpjIRxhmTK8k/8V4ceapK2bFkyKVbvvaub7XnIp2vMLXkSeFIPwtHDhb37px9Q+QreZ7X3tJaw4XzLBhbTHvpmT3U6s4xUBa7JTBFbI9PVUOUtlMwKixqa9hinDG5ktxn3LL/l82+hca6/Pir//79P4wYizf/+XURO4yFQvm5LZO13dIJq4+r7cJ5FowzHjIkKm51ty29yMoUHChrRxrtOYJMSiRKRg3GGZMqyd/Xx4cebPYtNAQTr116zGev+U/tLdULYRyibwNHSUZVfXbzZA2bXoiIlP7kHZ+p5cJ5FzxNV+56ttPQ7BER22Olba0dV3mJXHFvUhV7tKoawdN0QiU2GXeNbzswva/Zd1Fn2VRuWWf/H1zzZ62ZtlgX3vL1K3p7c1Fabnt2auRAjQvjM+nMUctW13btPAtWd3sV44ykyh4ziVH1VNyEi90xTczqqja61eDMSlos1+GEDDgCJTYZnxp6uNm3UB/CXms6d9GGq89fc9ma7hoPD+jtzUXpMO5+OT+wvZbhReu0dSfXfO08K/lz06nKgUJ7fKydeGZ1E9Lu2Cwydpm3PSmLSY0aNVUOXIMFLbHJeEzXiW877mNlLZVNsaSlsimVtWy0bP82GzVGjaox5D4oazn4pVGjWg5eMmqM/8vQVUaNobK/yk0qTgfwj5Zi4UNODZh51R4/5bGX8XJZL5fxclmvJSu5jJcbGN/WnenzKL1uyfHruuc6cvfRH10fpRrj7h3TLzw9px7Qv7/x43O5fD4FT9Opih1BSsr2dGliewqOx/76bvudIxeXNjFVjVe1+i8sXIlNxvVLTlq/5KRm30XzffgH10bZDjiwY/rFucVid/uSo5dXO1/hiFIuH2ac0S5cVCUhZRX3OK1GiUlFVYnZKIkSCylrvjTdkZtlaT0sUEmem4YPfPcqz/OqP0er6vbnp+YYi7l09vPv+eO5vMM8m9kRWNmbdgfC2Gy0HUjDxMxsJ2BYyZ4UYw9ByJensqmWJn0F0FiJ7TPCu799eUdHS/VYLOTLz26ZrHnKJfCWi95w1rF1Ph2soQ47N23PvrGjiCTs+g1CrMSefZZ252Qpk0ecL0/nvEjzWrDgIBmT6UPfv2bWWBw5WHx282QhX/tpM1Yuk7v1iiO6GuMrBXPTwdL3lJeyQ4e2lISqulJkyiquApkdXyQiViGiQmk6gz5jQiEZE+gjP7wulUpViUVjdNdL+e3P12fFyU0XvbG7o7subzVvyn6tnaDPmPZSZJQ9+9Dsz0+zekSqxp4u7WaulYi0UM6XtdSePnLPR4S5QDImyqe++amxrsfFbfk9DGN0z878zhfzc+8qWj0d3bde+Y66vNV8mqlW6/9JeZ7nVuUQuXJj7Kaqbb/SuCU7amvxDE8PEVF/55qmfh3QKEjG5Hj//7021e6xsjvWjqkyH1V1z87Czhena9zf8ip+/+ZPdLUtvH5TMM4YzMCkvbS6s69UbIlaZRI3+shCQiKkbI8SVB4tDBHRyo4aV5jCEQ7JmATv+uaVuVyG2TNKbAfK7AZfJmYqlczQ3uLLL07np+qZiUR07dlXXXrqxfV9z/kR1GT0Ky+S2wHNZIwts8OipMRkjDLb+hHKooaYuWjyU6VxJu5rX9nMLwMaBsm4sL3zf1+TSkk6nTaGhNWe9mlL8hfz5sBg8eBgcfRgWesciUREy7p6P3nj79b/fedFkIzsz8B4nhfs/xO7xSVNHrErJmGUxW5+YRUaye8nou6WZSnBvulkQjIuSDd/+cpU2vM8Fha1q+6Eyqr5ifL0lJmaNCMHSpPjjd249ge3fLKjJVKZnyNQsNKb/AEHEVFRVWYhVSbPTU0Tq5LYIUh3oKqWD+b3ENG67hOa+CVAQyUqGUcmRjdve5zcaW+klluC4T52H1b+kio+S4e08n/pmqn/lq/+njO/NfkvRXtP/36DN9GZX9pmpHr/E/cfKO/xPBaPVctqSEnVqDGUnzaFug4gVveeq975mhPPm7ffru6KZubsF/tBSlJCbqML+5W87fpud9aq/XYRjxaHSlokorNWv7apXwQ0UKKS8dfPP/rv/mZhVMFa0G44//oPv+62Zt/FnJSDc2Bm5qZFVVncYQb2SFX2T8JiImWx67wP5AeIKONlj+s9o5lfAzRSonYH7h1OWtmxI9DFJ1/wmbfe3uy7mKtgd2Awey/suWkrd4SqnahWFRJideXHaLS4v2CmiOikvnM8FPROrkQl4+hkws82aLpTj9n0p+/5oyiVe45wwQxMwBOxW6WJjTtY1ZD6e6lZ1a4PHyput+0v3/Cm+b9tmDcL/q94pYW4sG4BOaZ/7Rfe//lsOtvsG6mDimT0n6ZFbI/RKKkSs4gSs9jjU+0S74PlnWUtEVFnpueorg1NvH9otEQlY2/n0mbfQmJtXLXhix/+887WjmbfSH0UZ8YZ3f+KeEQqzKTkiZiyqthCjCLMqjpVGhkr77WNLzz62mbdOcyPRM3ALEUyNsZVZ1z+h2//VC6ThN6iFZw37VceI2FRIXukqlFNeUzqdgiqSqE4PZ7ab1u2pNqv3Hhj024d5kWikrGvq7fZt5A0wvKR1/3Wu65cYKV0ZlUsuWTUIBmFWZmMUoqZ1LB6ZFc28nR+eiI1oOSWQF577DsEpbyTLlFP06t6V25Yub7Zd5EcHS0df/mBzycvFomoECSj/xlPhOxhqkSGWJSVmZgL+fyIDpS1aOesl2SXvXb99U28c5gfiUpGInrLhTc0+xYS4uKTL/iHT31jQS/nrqJQcgeBBX1GYrGrdpTY7rNk1unp6aHyrhLl1c/Qm07+YPPuGuZP0pLx+nOubs2imOic9HYu/bP3/oe/eP+fLu/ua/a9NEq+kLcfqLo9lCJCts6YKCkz0fT01GBxh52Mtn3JDd2nnrTi7KbeOMyTpCVja7b1o6//QLPvYqFqb2m/7Zpbv/uZb112WsL3veWLLhmN32f0iN0pMIamC9P7Jgb25XcYMrb7SKR9bSvef95nm3jPMJ8SNQNj3XTxm7YOvPjd+37Y7BtZSDpbO2655Ka3XXJje0tbs+9lPuSL7mna+H1GEmElZhqe3DdRHhExXppTftehPdP57nNuz3jJmZ2H6hKYjER0+42/MzE98c+//rdm38iRjplPX3/qdWdfdfWZl7dmW5t9O/Mn6DMG44z5/PhUabhopo1XTKeYWYKDX3Kp1ptP/0BPG1Y+LCLJTMaUl/qPt/7hBSee9/nv/MX49ESzb+eI44m3cdWGK06/9JqzrujvXt7s22mC0fFRKisJDY0OElEmQ/sn9mZzaY9VPOGZ7dTUmml93ak3nbDy1KbeL8y3ZCajdd05V19w0vnfu+9H37n3+yg20dXaedxRG087ZtPp60/ZtPaklsU9TxWs9J7MT6RcMW+/wA65UnJE3NXWfdPZ7zhr7QXNvFdoBtZGlHs+8ry0d8cjWx/bse9lk/Svl5k8SaU8L5vOLOta1t/dt7y7b/mS5UnawTJHqnrGBy4gQyTU3tqaL02LUF/P0kw2LWJSaS+d5kwmtbZ/zVvPf8/6ZRubfb/QBEnuM1Zau3zN2uU45g1eyf2kZCJWFSImbs+1b1q36Zaz39mJ/aaL1WJJRoBD+E8OwTMTk7BwV3v3uv41F5906WuOu6iZtwfNhmSERceYmRNylDSd8pZ29fT39B27ev1JazdddtLlmUymqTcIzYdkhMWor3tZLp1ta2nt6VqyetmKlUtXnLHhjJPXntzs+4IjxWKZgQEIqOpdj/28JZ3tW7JsxZL+9vaFegIiNA6SEQAgLGn7pgEA5g7JCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDCkIwAAGFIRgCAMCQjAEAYkhEAIAzJCAAQhmQEAAhDMgIAhCEZAQDC/j/irqJVo7r5swAAAABJRU5ErkJggg==" alt="佳拓 JT Logo">
+      </div>
+      <div>
+        <div class="flex items-center gap-2">
+          <h1 class="font-bold text-slate-900 text-base lg:text-lg tracking-tight" id="ui-brand-title">HYDRO-BLOK 格兰板</h1>
+          <span class="text-[10px] font-semibold bg-emerald-100 text-emerald-800 px-2 py-0.5 rounded border border-emerald-300" id="ui-std-tag">DIN EN 13164</span>
+        </div>
+        <p class="text-xs text-slate-500 hidden sm:block" id="ui-subtitle">建筑防水隔热复合结构板 · 3D 交互结构与技术参考</p>
+      </div>
+    </div>
+
+    <!-- 常用热销规格选择器（提取自 JUST TOP 价格单） -->
+    <div id="spec-picker" dir="ltr" title="鼠标停在规格栏上，使用滚轮可横向浏览全部规格" aria-label="鼠标停在规格栏上，使用滚轮可横向浏览全部规格" class="flex items-center gap-2 bg-slate-100/90 border border-slate-300/80 p-1 rounded-xl max-w-xl shrink min-w-0">
+      <span class="text-xs font-semibold text-slate-500 px-2 flex items-center gap-1 shrink-0">
+        <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+        <span id="ui-spec-label">可选规格:</span>
+      </span>
+      <div id="spec-buttons-scroll" class="min-w-0 flex-1 overflow-x-auto custom-scrollbar">
+        <div class="flex items-center gap-1 text-xs w-max" id="spec-buttons-container"></div>
+      </div>
+    </div>
+
+    <!-- 右侧：完整工具组（环绕、恢复视角、透视切换、工程参数表、4语切换） -->
+    <div id="main-toolbar" class="flex items-center gap-2 shrink-0 custom-scrollbar">
+      <!-- 视口与观测控制按钮组 -->
+      <div class="flex items-center bg-slate-100 border border-slate-300 p-0.5 rounded-lg text-xs font-medium text-slate-700">
+        <button onclick="toggleAutoRotate()" id="btn-auto-rotate" title="自动360度环绕旋转" aria-label="自动360度环绕旋转" class="flex items-center gap-1 px-2.5 py-1 rounded hover:bg-white hover:text-emerald-700 transition">
+          <i data-lucide="orbit" class="w-3.5 h-3.5"></i>
+          <span id="ui-btn-rotate">360°环绕</span>
+        </button>
+        <button onclick="resetCameraAndFocus()" id="btn-reset-view" title="恢复默认视角" aria-label="恢复默认视角" class="flex items-center gap-1 px-2.5 py-1 rounded hover:bg-white hover:text-emerald-700 transition">
+          <i data-lucide="rotate-ccw" class="w-3.5 h-3.5"></i>
+          <span id="ui-btn-reset-view">恢复视角</span>
+        </button>
+        <div class="w-[1px] h-4 bg-slate-300 mx-0.5"></div>
+        <button onclick="setCameraView('iso')" class="px-2 py-1 rounded hover:bg-white transition" id="btn-view-iso">斜角透视</button>
+        <button onclick="setCameraView('section')" class="px-2 py-1 rounded hover:bg-white transition" id="btn-view-section">侧面视图</button>
+        <button onclick="setCameraView('top')" class="px-2 py-1 rounded hover:bg-white transition" id="btn-view-top">板面俯视</button>
+      </div>
+
+      <!-- 工程性能参数弹窗按钮 -->
+      <button onclick="toggleSpecsModal()" class="flex items-center gap-1.5 px-2.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white rounded-lg text-xs font-semibold shadow-xs transition">
+        <i data-lucide="file-text" class="w-3.5 h-3.5"></i>
+        <span id="ui-btn-specs-doc">已核验测试数据</span>
+      </button>
+
+      <!-- 4国语言切换 -->
+      <div class="relative flex items-center bg-slate-100 border border-slate-300 rounded-lg p-1">
+        <i data-lucide="globe" class="w-4 h-4 text-slate-500 mx-1"></i>
+        <select id="lang-selector" onchange="changeLanguage(this.value)" class="bg-transparent text-xs font-semibold text-slate-700 focus:outline-none cursor-pointer pr-1">
+          <option value="zh" selected>中文 (ZH)</option>
+          <option value="en">English (EN)</option>
+          <option value="ar">العربية (AR)</option>
+          <option value="ru">Русский (RU)</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- 3D 渲染视口容器 -->
+  <div class="relative flex-1 w-full h-full overflow-hidden" id="canvas-container">
+    
+    <!-- 顶部正中央：一键复原整体 (合拢板材) 按钮 -->
+    <div class="absolute top-4 left-1/2 -translate-x-1/2 z-20 pointer-events-auto flex flex-col items-center gap-2.5">
+      <button id="btn-restore-top" onclick="restoreWholeBoard()" 
+        class="hidden items-center gap-2.5 px-6 py-2.5 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white font-semibold text-sm rounded-full shadow-lg border-2 border-white/90 transition-all transform hover:scale-105 btn-pulse cursor-pointer">
+        <i data-lucide="combine" class="w-4 h-4"></i>
+        <span id="ui-btn-restore">一键复原整体 (合拢板材)</span>
+      </button>
+      <button id="shift-restore-badge" onclick="pullBackAllLayers()" class="hidden items-center gap-1.5 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 active:bg-emerald-800 text-white text-xs font-bold rounded-full shadow-lg border border-white/90 transition-colors cursor-pointer">
+        <i data-lucide="arrow-right-left" class="w-3.5 h-3.5"></i>
+        <span id="ui-btn-pullback">拉回所有层</span>
+      </button>
+    </div>
+
+    <!-- 左上角规格动态信息卡 -->
+    <div id="current-spec-card" class="absolute top-4 left-4 z-10 bg-white/90 backdrop-blur-md border border-slate-300/80 rounded-xl p-3 shadow-md text-xs pointer-events-none max-w-xs">
+      <div class="flex items-center gap-1.5 text-emerald-700 font-bold mb-1">
+        <i data-lucide="badge-check" class="w-4 h-4"></i>
+        <span id="ui-current-sku-title">当前选定规格</span>
+      </div>
+      <div class="text-slate-800 font-bold text-sm" id="spec-sku-display">HBWB1220244020</div>
+      <div class="text-slate-500 mt-0.5" id="spec-dim-display">实际尺寸: 1220 × 2440 × 20 mm</div>
+      <div class="text-slate-400 text-[11px] mt-1" id="ui-hint-drag">🖱️ 按住左键旋转 · 滚轮缩放 · 右键平移 · 点击板材部件解构</div>
+      <div class="text-amber-700 text-[10px] mt-1" id="ui-scale-note">结构示意：层厚已适当放大，不代表真实比例</div>
+    </div>
+
+    <!-- 左上角单板面积与重量动态数据卡 -->
+    <div id="product-metrics-card" class="absolute top-4 left-[22rem] z-10 w-64 bg-white/90 backdrop-blur-md border border-slate-300/80 rounded-xl p-3 shadow-md pointer-events-none">
+      <div class="flex items-center gap-1.5 text-slate-700 font-bold text-xs mb-2">
+        <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center">
+          <i data-lucide="chart-no-axes-column-increasing" class="w-3.5 h-3.5"></i>
+        </span>
+        <span id="ui-metrics-title">单板数据</span>
+      </div>
+      <div id="metrics-grid" class="grid grid-cols-2 gap-2">
+        <div class="rounded-lg border border-slate-200 bg-slate-50/90 px-3 py-2">
+          <div class="flex items-center gap-1 text-[10px] font-semibold text-slate-500">
+            <i data-lucide="maximize" class="w-3 h-3 text-emerald-600"></i>
+            <span id="ui-area-label">单板面积</span>
+          </div>
+          <div class="mt-0.5 whitespace-nowrap">
+            <span id="metric-area-value" class="text-lg font-extrabold tracking-tight text-slate-900">2.98</span>
+            <span class="ml-1 text-[11px] font-semibold text-slate-500">m²</span>
+          </div>
+        </div>
+        <div id="metric-weight-item" class="rounded-lg border border-emerald-200 bg-emerald-50/80 px-3 py-2">
+          <div class="flex items-center gap-1 text-[10px] font-semibold text-emerald-700">
+            <i data-lucide="weight" class="w-3 h-3"></i>
+            <span id="ui-weight-label">单板重量</span>
+          </div>
+          <div class="mt-0.5 whitespace-nowrap">
+            <span id="metric-weight-value" class="text-lg font-extrabold tracking-tight text-emerald-800">9.7</span>
+            <span class="ml-1 text-[11px] font-semibold text-emerald-700">kg</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 右侧：选定部件解构与技术参数卡片 -->
+    <div id="inspector-card" class="absolute top-4 right-4 z-10 w-80 lg:w-96 bg-white/95 backdrop-blur-md border border-slate-300 rounded-2xl shadow-xl p-4 transition-all duration-300">
+      <div class="flex items-start justify-between border-b border-slate-100 pb-3">
+        <div>
+          <span class="text-[10px] font-bold tracking-wider px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700" id="card-layer-tag">LAYER 03 / 05</span>
+          <h3 class="font-bold text-slate-900 text-base mt-1" id="card-title">闭孔 XPS 挤塑聚苯乙烯芯材</h3>
+          <p class="text-xs text-slate-500" id="card-subtitle">轻质保温承载芯层</p>
+        </div>
+        <button onclick="toggleCardVisibility()" id="btn-close-inspector" title="关闭部件信息" aria-label="关闭部件信息" class="text-slate-400 hover:text-slate-600 p-1 rounded-lg">
+          <i data-lucide="x" class="w-4 h-4"></i>
+        </button>
+      </div>
+
+      <div class="mt-3 text-xs leading-relaxed text-slate-600 min-h-[52px]" id="card-desc">
+        闭孔 XPS 泡沫芯材构成板材主体，兼顾轻量化、隔热和承载。页面中的比例与纹理为可视化示意。
+      </div>
+
+      <!-- 核心指标网格 -->
+      <div id="layer-properties-grid" class="mt-3 grid grid-cols-2 gap-2 bg-slate-50 border border-slate-200/80 p-2.5 rounded-xl text-xs">
+        <div>
+          <div class="text-slate-400 text-[10px]" id="prop-k1-name">主要作用</div>
+          <div class="font-bold text-slate-800" id="prop-k1-val">隔热、轻质承载与防潮</div>
+        </div>
+        <div>
+          <div class="text-slate-400 text-[10px]" id="prop-k2-name">材料类型</div>
+          <div class="font-bold text-slate-800" id="prop-k2-val">闭孔 XPS 挤塑聚苯乙烯</div>
+        </div>
+        <div class="mt-1.5">
+          <div class="text-slate-400 text-[10px]" id="prop-k3-name">结构位置</div>
+          <div class="font-bold text-emerald-700" id="prop-k3-val">复合板芯层</div>
+        </div>
+        <div class="mt-1.5">
+          <div class="text-slate-400 text-[10px]" id="prop-k4-name">已核验测试</div>
+          <div class="font-bold text-slate-800" id="prop-k4-val">见“已核验测试数据”</div>
+        </div>
+      </div>
+
+      <!-- 操作按钮栏（独家单层移出居中观察模式） -->
+      <div id="inspector-actions" class="mt-3 pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+        <button id="btn-isolate" onclick="toggleCenterShiftCurrentLayer()" class="flex-1 flex items-center justify-center gap-1.5 text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-800 font-semibold py-1.5 px-3 rounded-xl border border-emerald-300 transition">
+          <i data-lucide="move-diagonal" class="w-3.5 h-3.5"></i>
+          <span id="ui-btn-isolate">单独移出置中观察</span>
+        </button>
+        <button onclick="pullBackAllLayers()" id="ui-btn-pullback-side" class="text-xs text-slate-600 hover:text-emerald-700 font-medium py-1.5 px-2.5 rounded-xl hover:bg-slate-100 border border-slate-200 transition">
+          拉回复位
+        </button>
+      </div>
+    </div>
+
+    <button id="btn-show-inspector" onclick="setCardVisibility(true)" class="hidden absolute top-4 right-4 z-10 items-center gap-1.5 px-3 py-2 bg-white/95 border border-slate-300 rounded-xl shadow-lg text-xs font-semibold text-slate-700 hover:text-emerald-700">
+      <i data-lucide="panel-right-open" class="w-4 h-4"></i>
+      <span id="ui-btn-show-details">显示部件信息</span>
+    </button>
+
+    <!-- 底部控制底栏：爆炸图展开滑块与分层定位器 -->
+    <div id="bottom-controls" class="absolute bottom-4 left-1/2 -translate-x-1/2 z-20 w-[92%] max-w-2xl bg-white/95 backdrop-blur-md border border-slate-300 rounded-2xl shadow-xl p-3.5">
+      <div class="flex items-center justify-between text-xs font-semibold text-slate-700 mb-2">
+        <div class="flex items-center gap-1.5">
+          <i data-lucide="split" class="w-4 h-4 text-emerald-600"></i>
+          <span id="ui-explode-label">内部复合结构爆炸图 (Exploded View):</span>
+          <span id="explode-percent" class="font-mono text-emerald-700 font-bold bg-emerald-50 px-1.5 py-0.5 rounded border border-emerald-200">0%</span>
+        </div>
+        <div class="flex items-center gap-2">
+          <button onclick="setExplosion(0)" class="px-2.5 py-1 text-slate-600 hover:bg-slate-100 rounded-lg transition" id="ui-btn-assemble">合拢整板</button>
+          <button onclick="setExplosion(1)" class="px-2.5 py-1 bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition shadow-xs" id="ui-btn-explode-all">完全展开</button>
+        </div>
+      </div>
+
+      <!-- 展开进度滑块 -->
+      <div class="relative flex items-center py-1">
+        <input id="explode-slider" type="range" min="0" max="100" value="0" step="1" aria-label="爆炸图展开程度" oninput="onExplodeInput(this.value)" class="w-full h-2 bg-slate-200 rounded-lg appearance-none cursor-pointer accent-emerald-600">
+      </div>
+
+      <!-- 5层结构点击指示标签 -->
+      <div id="layer-tabs" class="grid grid-cols-5 gap-1.5 mt-2.5 text-[11px] text-center font-medium">
+        <button onclick="toggleLayerCenterFromTab(0)" id="tab-layer-0" class="py-1 px-1 rounded-lg border border-slate-200 bg-slate-50 hover:border-emerald-500 transition truncate">1. 水泥基涂层</button>
+        <button onclick="toggleLayerCenterFromTab(1)" id="tab-layer-1" class="py-1 px-1 rounded-lg border border-slate-200 bg-slate-50 hover:border-emerald-500 transition truncate">2. 增强玻纤网</button>
+        <button onclick="toggleLayerCenterFromTab(2)" id="tab-layer-2" class="py-1 px-1 rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-800 font-bold transition truncate">3. XPS芯材</button>
+        <button onclick="toggleLayerCenterFromTab(3)" id="tab-layer-3" class="py-1 px-1 rounded-lg border border-slate-200 bg-slate-50 hover:border-emerald-500 transition truncate">4. 增强玻纤网</button>
+        <button onclick="toggleLayerCenterFromTab(4)" id="tab-layer-4" class="py-1 px-1 rounded-lg border border-slate-200 bg-slate-50 hover:border-emerald-500 transition truncate">5. 水泥基涂层</button>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- 工程检验参数与物理性能标准弹窗 -->
+  <div id="specs-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
+    <div id="modal-card" class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-emerald-600 flex items-center justify-center text-white">
+            <i data-lucide="shield-check" class="w-5 h-5"></i>
+          </div>
+          <div>
+            <h2 class="text-base font-bold text-slate-900" id="modal-title">HYDRO-BLOK 格兰板 · 已核验测试参考</h2>
+            <p class="text-xs text-slate-500" id="modal-subtitle">SGS 报告 XMIN2407001311CM01_EN · 12 mm 样品 · 2024-09-10</p>
+          </div>
+        </div>
+        <button onclick="toggleSpecsModal(false)" id="modal-close-icon" title="关闭技术参数" aria-label="关闭技术参数" class="text-slate-400 hover:text-slate-600 p-1.5 rounded-lg">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="mt-4 overflow-x-auto">
+        <table class="w-full text-left text-xs border border-slate-200 rounded-lg">
+          <thead class="bg-slate-50 text-slate-600 font-semibold border-b border-slate-200">
+            <tr>
+              <th class="p-2.5" id="modal-head-item">检验项目</th>
+              <th class="p-2.5" id="modal-head-method">标准测试方法</th>
+              <th class="p-2.5" id="modal-head-result">报告结果</th>
+              <th class="p-2.5" id="modal-head-assessment">判定</th>
+            </tr>
+          </thead>
+          <tbody id="modal-table-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
+        </table>
+      </div>
+
+      <p id="modal-note" class="mt-3 text-[11px] leading-relaxed text-slate-500 bg-slate-50 border border-slate-200 rounded-lg p-3">以上结果仅适用于报告中受检的 12 mm 样品。项目选型前应核对最新完整报告、所选厚度、当地规范和完整系统安装要求。</p>
+
+      <div class="mt-4 flex justify-end">
+        <button onclick="toggleSpecsModal(false)" id="modal-close-button" class="px-4 py-2 bg-slate-900 text-white text-xs font-semibold rounded-lg hover:bg-slate-800 transition">
+          关闭技术参数
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <div id="runtime-status" class="hidden fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-[60] rounded-xl border border-red-300 bg-white p-5 text-sm text-red-700 shadow-2xl" role="alert"></div>
+
+  <script>
+    // ==========================================
+    // 1. 多语言字典定义 (中文, English, العربية, Русский)
+    // ==========================================
+    const I18N = {
+      zh: {
+        htmlLang: "zh-CN",
+        dir: "ltr",
+        documentTitle: "HYDRO-BLOK 格兰板｜3D 结构与技术参考",
+        brandTitle: "HYDRO-BLOK 格兰板",
+        subtitle: "建筑防水隔热复合结构板 · 3D 交互结构与技术参考",
+        stdTag: "DIN EN 13164",
+        specLabel: "可选规格:",
+        metricsTitle: "单板数据",
+        areaLabel: "单板面积",
+        weightLabel: "单板重量",
+        restoreTop: "一键复原整体 (合拢板材)",
+        currentSku: "当前选定规格",
+        dimPrefix: "实际尺寸: ",
+        dragHint: "🖱️ 拖动旋转 · 滚轮缩放 · 右键平移 · 单击选层 · 双击置中／再次双击复位 · 支持触控",
+        specWheelHint: "鼠标停在规格栏上，使用滚轮可横向浏览全部规格",
+        scaleNote: "结构示意：层厚已适当放大，不代表真实比例",
+        explodeLabel: "内部复合结构爆炸图:",
+        btnAssemble: "合拢整板",
+        btnExplodeAll: "完全展开",
+        btnIsolate: "单独移出置中观察",
+        btnPullback: "拉回所有层",
+        btnPullbackSide: "拉回复位",
+        btnRecenter: "重置观察中心",
+        btnRotate: "360°环绕",
+        btnResetView: "恢复视角",
+        btnSpecsDoc: "已核验测试数据",
+        btnShowDetails: "显示部件信息",
+        shiftHint: "已将当前部件置中观察，其余层已向左平移移出",
+        viewIso: "斜角透视",
+        viewSection: "侧面视图",
+        viewTop: "板面俯视",
+        titleAutoRotate: "开启或关闭自动360度环绕",
+        titleResetView: "恢复默认视角",
+        titleCloseInspector: "关闭部件信息",
+        titleCloseSpecs: "关闭技术参数",
+        sliderLabel: "爆炸图展开程度",
+        runtimeError: "3D 组件加载失败。请检查网络连接后重新打开本文件。",
+        modal: {
+          title: "HYDRO-BLOK 格兰板 · 已核验测试参考",
+          subtitle: "SGS 报告 XMIN2407001311CM01_EN · 12 mm 样品 · 2024-09-10",
+          headers: ["检验项目", "测试方法", "报告结果", "判定"],
+          rows: [
+            ["厚度", "EN 13164:2012+A1:2015 / EN ISO 29466:2022", "12.05 mm（标称 12 mm）", "通过：T3（12 ± 1 mm）"],
+            ["10% 形变时的压缩应力", "EN 13164:2012+A1:2015 / EN ISO 29469:2022", "最低 468 kPa；平均 473 kPa", "通过：≥ 300 kPa"],
+            ["垂直于表面的拉伸强度", "EN 13164:2012+A1:2015 / EN 1607:2013", "最低 401 kPa；平均 508 kPa", "通过：≥ 200 kPa"],
+            ["长期全浸水吸水率（28 天）", "EN 13164:2012+A1:2015 / ISO 16535:2019 方法 2A", "最大 2.4%；平均 2.3%", "通过：≤ 3%"],
+            ["特定荷载与温度下的变形", "EN 13164:2012+A1:2015 / EN 1605:2013", "报告结果：2", "通过：≤ 5"]
+          ],
+          note: "以上结果仅适用于报告中受检的 12 mm 样品。项目选型前应核对最新完整报告、所选厚度、当地规范和完整系统安装要求。蒸汽房等高湿高温场景须按安装指南增设防水膜。",
+          close: "关闭技术参数"
+        },
+        layers: [
+          {
+            shortName: "水泥基涂层",
+            name: "聚合物改性水泥基涂层",
+            sub: "双面同材质的粘结与保护层",
+            tag: "LAYER 01 / 05",
+            desc: "板材两面采用相同的聚合物改性水泥基涂层，分别包覆耐碱玻纤网，形成可铺贴瓷砖或与施工系统粘结的纹理表面。两面材料与功能一致，不区分上、下表面；模型中的表面纹理为结构示意。",
+            k1: ["主要作用", "提供粘结面与表面保护"],
+            k2: ["结构位置", "XPS 芯材两侧（双面相同）"],
+            k3: ["材料类型", "聚合物改性水泥基涂层"],
+            k4: ["参数依据", "以当前技术数据表为准"]
+          },
+          {
+            shortName: "增强玻纤网",
+            name: "耐碱玻璃纤维增强网",
+            sub: "双面同材质的抗裂增强层",
+            tag: "LAYER 02 / 05",
+            desc: "板材两面的水泥基涂层内均嵌入相同的耐碱玻璃纤维增强网，用于分散表面应力并提高复合结构的抗裂稳定性。两侧材料与功能一致，不区分上、下表面。",
+            k1: ["主要作用", "分散应力、抑制表层开裂"],
+            k2: ["材料类型", "耐碱玻璃纤维网"],
+            k3: ["结构位置", "XPS 芯材两侧涂层内（双面相同）"],
+            k4: ["参数依据", "以当前技术数据表为准"]
+          },
+          {
+            shortName: "XPS 芯材",
+            name: "闭孔 XPS 挤塑聚苯乙烯芯材",
+            sub: "轻质保温承载芯层",
+            tag: "LAYER 03 / 05",
+            desc: "闭孔 XPS 泡沫芯材构成板材主体，兼顾轻量化、隔热和承载。页面中的比例与纹理为可视化示意。",
+            k1: ["主要作用", "隔热、轻质承载与防潮"],
+            k2: ["材料类型", "闭孔 XPS 挤塑聚苯乙烯"],
+            k3: ["结构位置", "复合板芯层"],
+            k4: ["已核验测试", "见“已核验测试数据”"]
+          },
+          {
+            shortName: "增强玻纤网",
+            name: "耐碱玻璃纤维增强网",
+            sub: "双面同材质的抗裂增强层",
+            tag: "LAYER 04 / 05",
+            desc: "板材两面的水泥基涂层内均嵌入相同的耐碱玻璃纤维增强网，用于分散表面应力并提高复合结构的抗裂稳定性。两侧材料与功能一致，不区分上、下表面。",
+            k1: ["主要作用", "分散应力、抑制表层开裂"],
+            k2: ["材料类型", "耐碱玻璃纤维网"],
+            k3: ["结构位置", "XPS 芯材两侧涂层内（双面相同）"],
+            k4: ["参数依据", "以当前技术数据表为准"]
+          },
+          {
+            shortName: "水泥基涂层",
+            name: "聚合物改性水泥基涂层",
+            sub: "双面同材质的粘结与保护层",
+            tag: "LAYER 05 / 05",
+            desc: "板材两面采用相同的聚合物改性水泥基涂层，分别包覆耐碱玻纤网，形成可铺贴瓷砖或与施工系统粘结的纹理表面。两面材料与功能一致，不区分上、下表面；模型中的表面纹理为结构示意。",
+            k1: ["主要作用", "提供粘结面与表面保护"],
+            k2: ["结构位置", "XPS 芯材两侧（双面相同）"],
+            k3: ["材料类型", "聚合物改性水泥基涂层"],
+            k4: ["参数依据", "以当前技术数据表为准"]
+          }
+        ]
+      },
+      en: {
+        htmlLang: "en",
+        dir: "ltr",
+        documentTitle: "HYDRO-BLOK Wallboard | Interactive 3D Structure & Technical Reference",
+        brandTitle: "HYDRO-BLOK Wallboard",
+        subtitle: "Waterproof, thermally insulating composite board · Interactive 3D technical reference",
+        stdTag: "DIN EN 13164",
+        specLabel: "Available Sizes:",
+        metricsTitle: "Board Data",
+        areaLabel: "Area per Board",
+        weightLabel: "Weight per Board",
+        restoreTop: "Restore Board (Assemble)",
+        currentSku: "Selected SKU",
+        dimPrefix: "Actual Dimensions: ",
+        dragHint: "🖱️ Drag to rotate · Wheel to zoom · Right-drag to pan · Click to select · Double-click to isolate/restore · Touch supported",
+        specWheelHint: "Hover over the size bar and use the mouse wheel to scroll horizontally",
+        scaleNote: "Schematic view: layer thicknesses are exaggerated and not shown to scale",
+        explodeLabel: "Exploded Composite Structure:",
+        btnAssemble: "Assemble",
+        btnExplodeAll: "Explode All",
+        btnIsolate: "Isolate & Center Layer",
+        btnPullback: "Restore All Layers",
+        btnPullbackSide: "Restore Layers",
+        btnRecenter: "Recenter Focus",
+        btnRotate: "360° Orbit",
+        btnResetView: "Reset View",
+        btnSpecsDoc: "Verified Test Data",
+        btnShowDetails: "Show Layer Details",
+        shiftHint: "Selected layer is centered for inspection; other layers shifted to the left",
+        viewIso: "Isometric",
+        viewSection: "Side View",
+        viewTop: "Top Surface",
+        titleAutoRotate: "Toggle automatic 360-degree orbit",
+        titleResetView: "Restore the default camera view",
+        titleCloseInspector: "Close layer details",
+        titleCloseSpecs: "Close technical data",
+        sliderLabel: "Exploded-view separation",
+        runtimeError: "The 3D components could not be loaded. Check the network connection and reopen this file.",
+        modal: {
+          title: "HYDRO-BLOK Wallboard · Verified Test Reference",
+          subtitle: "SGS Report XMIN2407001311CM01_EN · 12 mm sample · 10 Sep 2024",
+          headers: ["Test item", "Test method", "Reported result", "Assessment"],
+          rows: [
+            ["Thickness", "EN 13164:2012+A1:2015 / EN ISO 29466:2022", "12.05 mm (12 mm nominal)", "Pass: T3 (12 ± 1 mm)"],
+            ["Compressive stress at 10% deformation", "EN 13164:2012+A1:2015 / EN ISO 29469:2022", "Minimum 468 kPa; average 473 kPa", "Pass: ≥ 300 kPa"],
+            ["Tensile strength perpendicular to faces", "EN 13164:2012+A1:2015 / EN 1607:2013", "Minimum 401 kPa; average 508 kPa", "Pass: ≥ 200 kPa"],
+            ["Long-term water absorption by total immersion (28 days)", "EN 13164:2012+A1:2015 / ISO 16535:2019 Method 2A", "Maximum 2.4%; average 2.3%", "Pass: ≤ 3%"],
+            ["Deformation under specified load and temperature", "EN 13164:2012+A1:2015 / EN 1605:2013", "Reported result: 2", "Pass: ≤ 5"]
+          ],
+          note: "These results apply only to the tested 12 mm sample. Before specification, confirm the latest complete report, selected thickness, local codes and the full system installation requirements. Steam rooms require an additional waterproofing membrane in accordance with the installation guide.",
+          close: "Close Technical Data"
+        },
+        layers: [
+          {
+            shortName: "Cementitious Coating",
+            name: "Polymer-Modified Cementitious Coating",
+            sub: "Identical bonding and protective layer on both faces",
+            tag: "LAYER 01 / 05",
+            desc: "Both faces of the board use the same polymer-modified cementitious coating. Each coating encapsulates an alkali-resistant fiberglass mesh and forms a textured bonding surface for tile or system installation. Material and function are identical on both faces; there is no designated top or bottom. The rendered texture is schematic.",
+            k1: ["Primary Function", "Bonding surface and surface protection"],
+            k2: ["Position", "Both sides of the XPS core (identical)"],
+            k3: ["Material", "Polymer-modified cementitious coating"],
+            k4: ["Data Note", "Refer to the current technical data sheet"]
+          },
+          {
+            shortName: "Reinforcing Mesh",
+            name: "Alkali-Resistant Fiberglass Reinforcing Mesh",
+            sub: "Identical crack-control reinforcement on both faces",
+            tag: "LAYER 02 / 05",
+            desc: "The same alkali-resistant fiberglass reinforcing mesh is embedded in the cementitious coating on each face to distribute surface stress and improve crack-control and composite stability. Material and function are identical on both sides; there is no designated top or bottom.",
+            k1: ["Primary Function", "Stress distribution and crack control"],
+            k2: ["Material", "Alkali-resistant fiberglass mesh"],
+            k3: ["Position", "Within the coatings on both sides of the XPS core (identical)"],
+            k4: ["Data Note", "Refer to the current technical data sheet"]
+          },
+          {
+            shortName: "XPS Core",
+            name: "Closed-Cell Extruded Polystyrene (XPS) Core",
+            sub: "Lightweight insulating structural core",
+            tag: "LAYER 03 / 05",
+            desc: "The closed-cell XPS foam core forms the body of the board and combines low weight, thermal insulation and structural support. Proportions and texture are schematic.",
+            k1: ["Primary Function", "Insulation, light weight and moisture resistance"],
+            k2: ["Material", "Closed-cell extruded polystyrene"],
+            k3: ["Position", "Composite board core"],
+            k4: ["Verified Testing", "See “Verified Test Data”"]
+          },
+          {
+            shortName: "Reinforcing Mesh",
+            name: "Alkali-Resistant Fiberglass Reinforcing Mesh",
+            sub: "Identical crack-control reinforcement on both faces",
+            tag: "LAYER 04 / 05",
+            desc: "The same alkali-resistant fiberglass reinforcing mesh is embedded in the cementitious coating on each face to distribute surface stress and improve crack-control and composite stability. Material and function are identical on both sides; there is no designated top or bottom.",
+            k1: ["Primary Function", "Stress distribution and crack control"],
+            k2: ["Material", "Alkali-resistant fiberglass mesh"],
+            k3: ["Position", "Within the coatings on both sides of the XPS core (identical)"],
+            k4: ["Data Note", "Refer to the current technical data sheet"]
+          },
+          {
+            shortName: "Cementitious Coating",
+            name: "Polymer-Modified Cementitious Coating",
+            sub: "Identical bonding and protective layer on both faces",
+            tag: "LAYER 05 / 05",
+            desc: "Both faces of the board use the same polymer-modified cementitious coating. Each coating encapsulates an alkali-resistant fiberglass mesh and forms a textured bonding surface for tile or system installation. Material and function are identical on both faces; there is no designated top or bottom. The rendered texture is schematic.",
+            k1: ["Primary Function", "Bonding surface and surface protection"],
+            k2: ["Position", "Both sides of the XPS core (identical)"],
+            k3: ["Material", "Polymer-modified cementitious coating"],
+            k4: ["Data Note", "Refer to the current technical data sheet"]
+          }
+        ]
+      },
+      ar: {
+        htmlLang: "ar",
+        dir: "rtl",
+        documentTitle: "لوح HYDRO-BLOK | دليل تفاعلي ثلاثي الأبعاد للبنية والبيانات الفنية",
+        brandTitle: "لوح هيدروبلوك (HYDRO-BLOK)",
+        subtitle: "لوح إنشائي مركّب مقاوم للماء وعازل للحرارة · مرجع تقني تفاعلي ثلاثي الأبعاد",
+        stdTag: "DIN EN 13164",
+        specLabel: "المقاسات المتاحة:",
+        metricsTitle: "بيانات اللوح",
+        areaLabel: "مساحة اللوح",
+        weightLabel: "وزن اللوح",
+        restoreTop: "إعادة تجميع اللوح بالكامل",
+        currentSku: "المقاس المختار",
+        dimPrefix: "الأبعاد الفعلية: ",
+        dragHint: "🖱️ اسحب للتدوير · العجلة للتكبير · الزر الأيمن للتحريك · انقر للاختيار · انقر نقراً مزدوجاً للعزل أو الاستعادة · يدعم اللمس",
+        specWheelHint: "مرّر مؤشر الفأرة فوق شريط المقاسات واستخدم العجلة للتصفح أفقياً",
+        scaleNote: "رسم توضيحي: تم تكبير سماكات الطبقات ولا تمثل المقياس الحقيقي",
+        explodeLabel: "عرض انفجاري للبنية المركّبة:",
+        btnAssemble: "تجميع اللوح",
+        btnExplodeAll: "فصل جميع الطبقات",
+        btnIsolate: "عزل وتوسيط الطبقة",
+        btnPullback: "إعادة جميع الطبقات",
+        btnPullbackSide: "إعادة الطبقات",
+        btnRecenter: "إعادة ضبط المركز",
+        btnRotate: "دوران تلقائي 360°",
+        btnResetView: "استعادة المنظور",
+        btnSpecsDoc: "بيانات الاختبار الموثقة",
+        btnShowDetails: "إظهار تفاصيل الطبقة",
+        shiftHint: "تم توسيط الطبقة المختارة ونقل الطبقات الأخرى يساراً للفحص",
+        viewIso: "منظور مائل",
+        viewSection: "منظر جانبي",
+        viewTop: "عرض علوي",
+        titleAutoRotate: "تشغيل أو إيقاف الدوران التلقائي بزاوية 360 درجة",
+        titleResetView: "استعادة وضع الكاميرا الافتراضي",
+        titleCloseInspector: "إغلاق تفاصيل الطبقة",
+        titleCloseSpecs: "إغلاق البيانات الفنية",
+        sliderLabel: "مقدار فصل الطبقات في العرض الانفجاري",
+        runtimeError: "تعذر تحميل مكونات العرض ثلاثي الأبعاد. تحقق من اتصال الشبكة ثم أعد فتح الملف.",
+        modal: {
+          title: "لوح HYDRO-BLOK · مرجع الاختبارات الموثقة",
+          subtitle: "تقرير SGS رقم XMIN2407001311CM01_EN · عينة 12 مم · 10 سبتمبر 2024",
+          headers: ["بند الاختبار", "طريقة الاختبار", "النتيجة المسجلة", "التقييم"],
+          rows: [
+            ["السُمك", "EN 13164:2012+A1:2015 / EN ISO 29466:2022", "12.05 مم (السُمك الاسمي 12 مم)", "مطابق: T3 ‏(12 ± 1 مم)"],
+            ["إجهاد الضغط عند تشوه 10%", "EN 13164:2012+A1:2015 / EN ISO 29469:2022", "الحد الأدنى 468 كيلوباسكال؛ المتوسط 473 كيلوباسكال", "مطابق: ≥ 300 كيلوباسكال"],
+            ["مقاومة الشد عمودياً على السطحين", "EN 13164:2012+A1:2015 / EN 1607:2013", "الحد الأدنى 401 كيلوباسكال؛ المتوسط 508 كيلوباسكال", "مطابق: ≥ 200 كيلوباسكال"],
+            ["امتصاص الماء طويل الأمد بالغمر الكامل (28 يوماً)", "EN 13164:2012+A1:2015 / ISO 16535:2019 الطريقة 2A", "الحد الأقصى 2.4%؛ المتوسط 2.3%", "مطابق: ≤ 3%"],
+            ["التشوه تحت أحمال ودرجات حرارة محددة", "EN 13164:2012+A1:2015 / EN 1605:2013", "النتيجة المسجلة: 2", "مطابق: ≤ 5"]
+          ],
+          note: "تنطبق هذه النتائج على عينة 12 مم التي تم اختبارها فقط. قبل اعتماد المواصفات، يجب التحقق من أحدث تقرير كامل وسُمك المنتج المختار والكود المحلي ومتطلبات تركيب النظام بالكامل. تتطلب غرف البخار غشاء عزل مائي إضافياً وفق دليل التركيب.",
+          close: "إغلاق البيانات الفنية"
+        },
+        layers: [
+          {
+            shortName: "الطلاء الإسمنتي",
+            name: "طلاء إسمنتي معدل بالبوليمر",
+            sub: "طبقة ربط وحماية متطابقة على وجهي اللوح",
+            tag: "الطبقة 01 / 05",
+            desc: "يستخدم وجها اللوح الطلاء الإسمنتي المعدل بالبوليمر نفسه. يغلف كل طلاء شبكة ألياف زجاجية مقاومة للقلويات ويكوّن سطحاً محبباً للالتصاق بالبلاط أو بنظام التركيب. المادة والوظيفة متطابقتان على الوجهين، ولا يوجد وجه علوي أو سفلي محدد. ملمس السطح في النموذج توضيحي.",
+            k1: ["الوظيفة الأساسية", "سطح للربط وحماية السطح"],
+            k2: ["الموقع", "على جانبي قلب XPS (متطابقان)"],
+            k3: ["المادة", "طلاء إسمنتي معدل بالبوليمر"],
+            k4: ["ملاحظة البيانات", "يرجى الرجوع إلى ورقة البيانات الفنية الحالية"]
+          },
+          {
+            shortName: "شبكة التسليح",
+            name: "شبكة تسليح من الألياف الزجاجية مقاومة للقلويات",
+            sub: "تسليح متطابق للتحكم في التشققات على وجهي اللوح",
+            tag: "الطبقة 02 / 05",
+            desc: "تُدمج شبكة التسليح نفسها المصنوعة من الألياف الزجاجية المقاومة للقلويات داخل الطلاء الإسمنتي على كل وجه لتوزيع إجهادات السطح وتحسين مقاومة التشقق وثبات البنية المركّبة. المادة والوظيفة متطابقتان على الجانبين، ولا يوجد وجه علوي أو سفلي محدد.",
+            k1: ["الوظيفة الأساسية", "توزيع الإجهاد والتحكم في التشققات"],
+            k2: ["المادة", "شبكة ألياف زجاجية مقاومة للقلويات"],
+            k3: ["الموقع", "داخل الطلاء على جانبي قلب XPS (متطابقان)"],
+            k4: ["ملاحظة البيانات", "يرجى الرجوع إلى ورقة البيانات الفنية الحالية"]
+          },
+          {
+            shortName: "قلب XPS",
+            name: "قلب من البوليسترين المبثوق مغلق الخلايا (XPS)",
+            sub: "قلب خفيف عازل وداعم",
+            tag: "الطبقة 03 / 05",
+            desc: "يشكل فوم XPS مغلق الخلايا جسم اللوح، ويجمع بين خفة الوزن والعزل الحراري والدعم الإنشائي. النسب والملمس في النموذج توضيحيان.",
+            k1: ["الوظيفة الأساسية", "العزل وخفة الوزن ومقاومة الرطوبة"],
+            k2: ["المادة", "بوليسترين مبثوق مغلق الخلايا"],
+            k3: ["الموقع", "قلب اللوح المركّب"],
+            k4: ["الاختبارات الموثقة", "راجع «بيانات الاختبار الموثقة»"]
+          },
+          {
+            shortName: "شبكة التسليح",
+            name: "شبكة تسليح من الألياف الزجاجية مقاومة للقلويات",
+            sub: "تسليح متطابق للتحكم في التشققات على وجهي اللوح",
+            tag: "الطبقة 04 / 05",
+            desc: "تُدمج شبكة التسليح نفسها المصنوعة من الألياف الزجاجية المقاومة للقلويات داخل الطلاء الإسمنتي على كل وجه لتوزيع إجهادات السطح وتحسين مقاومة التشقق وثبات البنية المركّبة. المادة والوظيفة متطابقتان على الجانبين، ولا يوجد وجه علوي أو سفلي محدد.",
+            k1: ["الوظيفة الأساسية", "توزيع الإجهاد والتحكم في التشققات"],
+            k2: ["المادة", "شبكة ألياف زجاجية مقاومة للقلويات"],
+            k3: ["الموقع", "داخل الطلاء على جانبي قلب XPS (متطابقان)"],
+            k4: ["ملاحظة البيانات", "يرجى الرجوع إلى ورقة البيانات الفنية الحالية"]
+          },
+          {
+            shortName: "الطلاء الإسمنتي",
+            name: "طلاء إسمنتي معدل بالبوليمر",
+            sub: "طبقة ربط وحماية متطابقة على وجهي اللوح",
+            tag: "الطبقة 05 / 05",
+            desc: "يستخدم وجها اللوح الطلاء الإسمنتي المعدل بالبوليمر نفسه. يغلف كل طلاء شبكة ألياف زجاجية مقاومة للقلويات ويكوّن سطحاً محبباً للالتصاق بالبلاط أو بنظام التركيب. المادة والوظيفة متطابقتان على الوجهين، ولا يوجد وجه علوي أو سفلي محدد. ملمس السطح في النموذج توضيحي.",
+            k1: ["الوظيفة الأساسية", "سطح للربط وحماية السطح"],
+            k2: ["الموقع", "على جانبي قلب XPS (متطابقان)"],
+            k3: ["المادة", "طلاء إسمنتي معدل بالبوليمر"],
+            k4: ["ملاحظة البيانات", "يرجى الرجوع إلى ورقة البيانات الفنية الحالية"]
+          }
+        ]
+      },
+      ru: {
+        htmlLang: "ru",
+        dir: "ltr",
+        documentTitle: "Панель HYDRO-BLOK | Интерактивная 3D-структура и технические данные",
+        brandTitle: "Строительная панель HYDRO-BLOK",
+        subtitle: "Водостойкая теплоизоляционная композитная панель · Интерактивный 3D-справочник",
+        stdTag: "DIN EN 13164",
+        specLabel: "Доступные размеры:",
+        metricsTitle: "Данные панели",
+        areaLabel: "Площадь панели",
+        weightLabel: "Масса панели",
+        restoreTop: "Собрать панель воедино",
+        currentSku: "Выбранный артикул",
+        dimPrefix: "Фактические размеры: ",
+        dragHint: "🖱️ Перетаскивание — вращение · Колесо — масштаб · ПКМ — панорама · Клик — выбор · Двойной клик — изоляция/возврат · Сенсорный ввод поддерживается",
+        specWheelHint: "Наведите указатель на панель размеров и прокручивайте её колесом мыши по горизонтали",
+        scaleNote: "Схематическое изображение: толщина слоёв увеличена и не показана в реальном масштабе",
+        explodeLabel: "Разнесённая схема композитной структуры:",
+        btnAssemble: "Собрать",
+        btnExplodeAll: "Разнести все слои",
+        btnIsolate: "Изолировать слой в центр",
+        btnPullback: "Вернуть все слои",
+        btnPullbackSide: "Восстановить слои",
+        btnRecenter: "Центрировать",
+        btnRotate: "Автовращение 360°",
+        btnResetView: "Сброс вида",
+        btnSpecsDoc: "Подтверждённые испытания",
+        btnShowDetails: "Показать данные слоя",
+        shiftHint: "Выбранный слой расположен по центру, остальные слои смещены влево",
+        viewIso: "Изометрия",
+        viewSection: "Вид сбоку",
+        viewTop: "Вид сверху",
+        titleAutoRotate: "Включить или выключить автоматическое вращение на 360 градусов",
+        titleResetView: "Восстановить исходное положение камеры",
+        titleCloseInspector: "Закрыть данные слоя",
+        titleCloseSpecs: "Закрыть технические данные",
+        sliderLabel: "Степень разнесения слоёв",
+        runtimeError: "Не удалось загрузить 3D-компоненты. Проверьте подключение к сети и снова откройте файл.",
+        modal: {
+          title: "Панель HYDRO-BLOK · Подтверждённые результаты испытаний",
+          subtitle: "Отчёт SGS XMIN2407001311CM01_EN · образец 12 мм · 10 сентября 2024 г.",
+          headers: ["Показатель", "Метод испытания", "Результат отчёта", "Оценка"],
+          rows: [
+            ["Толщина", "EN 13164:2012+A1:2015 / EN ISO 29466:2022", "12,05 мм (номинал 12 мм)", "Соответствует: T3 (12 ± 1 мм)"],
+            ["Напряжение сжатия при 10% деформации", "EN 13164:2012+A1:2015 / EN ISO 29469:2022", "Минимум 468 кПа; среднее 473 кПа", "Соответствует: ≥ 300 кПа"],
+            ["Прочность при растяжении перпендикулярно поверхностям", "EN 13164:2012+A1:2015 / EN 1607:2013", "Минимум 401 кПа; среднее 508 кПа", "Соответствует: ≥ 200 кПа"],
+            ["Длительное водопоглощение при полном погружении (28 суток)", "EN 13164:2012+A1:2015 / ISO 16535:2019, метод 2A", "Максимум 2,4%; среднее 2,3%", "Соответствует: ≤ 3%"],
+            ["Деформация при заданных нагрузке и температуре", "EN 13164:2012+A1:2015 / EN 1605:2013", "Результат отчёта: 2", "Соответствует: ≤ 5"]
+          ],
+          note: "Результаты относятся только к испытанному образцу толщиной 12 мм. Перед включением продукта в проект проверьте актуальный полный отчёт, выбранную толщину, местные нормы и требования к монтажу всей системы. Для парных требуется дополнительная гидроизоляционная мембрана согласно инструкции по монтажу.",
+          close: "Закрыть технические данные"
+        },
+        layers: [
+          {
+            shortName: "Цементное покрытие",
+            name: "Полимермодифицированное цементное покрытие",
+            sub: "Одинаковый адгезионный и защитный слой с обеих сторон",
+            tag: "СЛОЙ 01 / 05",
+            desc: "С обеих сторон панели применяется одинаковое полимермодифицированное цементное покрытие. Каждый слой закрывает щелочестойкую стеклосетку и образует фактурную поверхность для приклеивания плитки или монтажа системы. Материал и функция с обеих сторон одинаковы; заданных верхней и нижней сторон нет. Фактура в модели показана схематически.",
+            k1: ["Основная функция", "Адгезионная поверхность и защита"],
+            k2: ["Положение", "С обеих сторон сердечника XPS (одинаково)"],
+            k3: ["Материал", "Полимермодифицированное цементное покрытие"],
+            k4: ["Примечание", "См. актуальный технический паспорт"]
+          },
+          {
+            shortName: "Армирующая сетка",
+            name: "Щелочестойкая армирующая стеклосетка",
+            sub: "Одинаковое армирование для контроля трещин с обеих сторон",
+            tag: "СЛОЙ 02 / 05",
+            desc: "Одинаковая щелочестойкая армирующая стеклосетка находится внутри цементного покрытия с каждой стороны, распределяет поверхностные напряжения и повышает трещиностойкость и стабильность композитной структуры. Материал и функция с обеих сторон одинаковы; заданных верхней и нижней сторон нет.",
+            k1: ["Основная функция", "Распределение напряжений и контроль трещин"],
+            k2: ["Материал", "Щелочестойкая стеклосетка"],
+            k3: ["Положение", "В покрытиях с обеих сторон сердечника XPS (одинаково)"],
+            k4: ["Примечание", "См. актуальный технический паспорт"]
+          },
+          {
+            shortName: "Сердечник XPS",
+            name: "Закрытоячеистый сердечник из экструдированного полистирола (XPS)",
+            sub: "Лёгкий теплоизоляционный несущий сердечник",
+            tag: "СЛОЙ 03 / 05",
+            desc: "Закрытоячеистый XPS формирует тело панели и сочетает малый вес, теплоизоляцию и конструкционную поддержку. Пропорции и фактура показаны схематически.",
+            k1: ["Основная функция", "Теплоизоляция, малый вес и влагостойкость"],
+            k2: ["Материал", "Закрытоячеистый экструдированный полистирол"],
+            k3: ["Положение", "Сердечник композитной панели"],
+            k4: ["Подтверждённые испытания", "См. раздел испытаний"]
+          },
+          {
+            shortName: "Армирующая сетка",
+            name: "Щелочестойкая армирующая стеклосетка",
+            sub: "Одинаковое армирование для контроля трещин с обеих сторон",
+            tag: "СЛОЙ 04 / 05",
+            desc: "Одинаковая щелочестойкая армирующая стеклосетка находится внутри цементного покрытия с каждой стороны, распределяет поверхностные напряжения и повышает трещиностойкость и стабильность композитной структуры. Материал и функция с обеих сторон одинаковы; заданных верхней и нижней сторон нет.",
+            k1: ["Основная функция", "Распределение напряжений и контроль трещин"],
+            k2: ["Материал", "Щелочестойкая стеклосетка"],
+            k3: ["Положение", "В покрытиях с обеих сторон сердечника XPS (одинаково)"],
+            k4: ["Примечание", "См. актуальный технический паспорт"]
+          },
+          {
+            shortName: "Цементное покрытие",
+            name: "Полимермодифицированное цементное покрытие",
+            sub: "Одинаковый адгезионный и защитный слой с обеих сторон",
+            tag: "СЛОЙ 05 / 05",
+            desc: "С обеих сторон панели применяется одинаковое полимермодифицированное цементное покрытие. Каждый слой закрывает щелочестойкую стеклосетку и образует фактурную поверхность для приклеивания плитки или монтажа системы. Материал и функция с обеих сторон одинаковы; заданных верхней и нижней сторон нет. Фактура в модели показана схематически.",
+            k1: ["Основная функция", "Адгезионная поверхность и защита"],
+            k2: ["Положение", "С обеих сторон сердечника XPS (одинаково)"],
+            k3: ["Материал", "Полимермодифицированное цементное покрытие"],
+            k4: ["Примечание", "См. актуальный технический паспорт"]
+          }
+        ]
+      }
+    };
+
+    function getInitialLanguage() {
+      try {
+        const saved = localStorage.getItem('hydroblok-lang');
+        if (saved && I18N[saved]) return saved;
+      } catch (_) {
+        // Some local-file environments disable storage; Chinese remains the safe default.
+      }
+      return 'zh';
+    }
+
+    let currentLang = getInitialLanguage();
+
+    // ==========================================
+    // 2. 从 JUST TOP 价格单提取的板材规格库（显示名称按语言本地化）
+    // ==========================================
+    const BOARD_SPECS = [
+      {
+        sku: 'HBWB1220244010',
+        labels: { zh: '1220×2440×10 mm', en: '1220×2440×10 mm', ar: '1220×2440×10 مم', ru: '1220×2440×10 мм' },
+        length: 2440,
+        width: 1220,
+        thickness: 10,
+        weightKg: 8.22,
+        descriptions: {
+          zh: '1220 × 2440 × 10 mm（公制墙板）',
+          en: '1220 × 2440 × 10 mm (metric wallboard)',
+          ar: '1220 × 2440 × 10 مم (لوح جداري متري)',
+          ru: '1220 × 2440 × 10 мм (метрическая стеновая панель)'
+        }
+      },
+      {
+        sku: 'HBWB1220244020',
+        labels: { zh: '1220×2440×20 mm（默认）', en: '1220×2440×20 mm (Featured)', ar: '1220×2440×20 مم (موصى به)', ru: '1220×2440×20 мм (основной)' },
+        length: 2440,
+        width: 1220,
+        thickness: 20,
+        weightKg: 9.7,
+        descriptions: {
+          zh: '1220 × 2440 × 20 mm（公制墙板 · 默认展示）',
+          en: '1220 × 2440 × 20 mm (metric wallboard · featured view)',
+          ar: '1220 × 2440 × 20 مم (لوح جداري متري · العرض الافتراضي)',
+          ru: '1220 × 2440 × 20 мм (метрическая стеновая панель · основной вид)'
+        }
+      },
+      {
+        sku: 'HBWB1220244030',
+        labels: { zh: '1220×2440×30 mm', en: '1220×2440×30 mm', ar: '1220×2440×30 مم', ru: '1220×2440×30 мм' },
+        length: 2440,
+        width: 1220,
+        thickness: 30,
+        weightKg: 10.25,
+        descriptions: {
+          zh: '1220 × 2440 × 30 mm（公制墙板）',
+          en: '1220 × 2440 × 30 mm (metric wallboard)',
+          ar: '1220 × 2440 × 30 مم (لوح جداري متري)',
+          ru: '1220 × 2440 × 30 мм (метрическая стеновая панель)'
+        }
+      },
+      {
+        sku: 'HBWB1220244050',
+        labels: { zh: '1220×2440×50 mm', en: '1220×2440×50 mm', ar: '1220×2440×50 مم', ru: '1220×2440×50 мм' },
+        length: 2440,
+        width: 1220,
+        thickness: 50,
+        weightKg: 13.44,
+        descriptions: {
+          zh: '1220 × 2440 × 50 mm（公制墙板）',
+          en: '1220 × 2440 × 50 mm (metric wallboard)',
+          ar: '1220 × 2440 × 50 مم (لوح جداري متري)',
+          ru: '1220 × 2440 × 50 мм (метрическая стеновая панель)'
+        }
+      },
+      {
+        sku: 'HBWB366012',
+        labels: { zh: '36″×60″×1/2″', en: '36″×60″×1/2″', ar: '36×60×1/2 بوصة', ru: '36×60×1/2 дюйма' },
+        length: 1524,
+        width: 914,
+        thickness: 12.7,
+        descriptions: {
+          zh: '36″ × 60″ × 1/2″（914 × 1524 × 12.7 mm 英制墙板）',
+          en: '36″ × 60″ × 1/2″ (914 × 1524 × 12.7 mm imperial wallboard)',
+          ar: '36 × 60 × 1/2 بوصة (914 × 1524 × 12.7 مم، لوح جداري بالنظام الإمبراطوري)',
+          ru: '36 × 60 × 1/2 дюйма (914 × 1524 × 12,7 мм, дюймовая стеновая панель)'
+        }
+      },
+      {
+        sku: 'HBWB489612',
+        labels: { zh: '48″×96″×1/2″', en: '48″×96″×1/2″', ar: '48×96×1/2 بوصة', ru: '48×96×1/2 дюйма' },
+        length: 2438,
+        width: 1219,
+        thickness: 12.7,
+        descriptions: {
+          zh: '48″ × 96″ × 1/2″（1219 × 2438 × 12.7 mm 英制墙板）',
+          en: '48″ × 96″ × 1/2″ (1219 × 2438 × 12.7 mm imperial wallboard)',
+          ar: '48 × 96 × 1/2 بوصة (1219 × 2438 × 12.7 مم، لوح جداري بالنظام الإمبراطوري)',
+          ru: '48 × 96 × 1/2 дюйма (1219 × 2438 × 12,7 мм, дюймовая стеновая панель)'
+        }
+      },
+      {
+        sku: 'HBWB48602',
+        labels: { zh: '48″×60″×2″', en: '48″×60″×2″', ar: '48×60×2 بوصة', ru: '48×60×2 дюйма' },
+        length: 1524,
+        width: 1219,
+        thickness: 50.8,
+        descriptions: {
+          zh: '48″ × 60″ × 2″（1219 × 1524 × 50.8 mm 英制墙板）',
+          en: '48″ × 60″ × 2″ (1219 × 1524 × 50.8 mm imperial wallboard)',
+          ar: '48 × 60 × 2 بوصة (1219 × 1524 × 50.8 مم، لوح جداري بالنظام الإمبراطوري)',
+          ru: '48 × 60 × 2 дюйма (1219 × 1524 × 50,8 мм, дюймовая стеновая панель)'
+        }
+      }
+    ];
+
+    let currentSpecIndex = 1; // 默认为 1220*2440*20mm
+
+    // ==========================================
+    // 3. Three.js 核心场景与渲染变量
+    // ==========================================
+    let scene, camera, renderer, controls;
+    let container = document.getElementById('canvas-container');
+    let boardGroup;
+    let layerMeshes = [];
+    let layerEdges = [];
+    let selectedLayerIndex = 2; // 默认选中 XPS 芯材
+    let explosionProgress = 0; // 0 ~ 1
+
+    // 新增：单层移出置中与其余层平移状态管理
+    let isShiftCenterMode = false;
+    let isolatedLayerIndex = null;
+    let targetPositionsY = [0, 0, 0, 0, 0];
+    let targetPositionsX = [0, 0, 0, 0, 0];
+    let currentPositionsX = [0, 0, 0, 0, 0];
+    let currentPositionsY = [0, 0, 0, 0, 0];
+
+    // 材质变量
+    let mortarTopMaterial, mortarBottomMaterial, meshMaterial, xpsMaterial;
+    let canvasWaffleTex, canvasPureCementTex, canvasXpsMicroBump, canvasMeshAlpha;
+    const isCompactDevice = window.matchMedia('(max-width: 768px)').matches;
+
+    function generateTextures() {
+      // 1. 合拢时水泥表面微弱网格印痕
+      const cWaffle = document.createElement('canvas');
+      cWaffle.width = 512;
+      cWaffle.height = 512;
+      const ctxW = cWaffle.getContext('2d');
+      ctxW.fillStyle = '#535b64';
+      ctxW.fillRect(0, 0, 512, 512);
+
+      for (let i = 0; i < (isCompactDevice ? 8000 : 18000); i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const shade = Math.random() > 0.5 ? '#5b646e' : '#4b525a';
+        ctxW.fillStyle = shade;
+        ctxW.fillRect(x, y, 1.2, 1.2);
+      }
+
+      ctxW.strokeStyle = 'rgba(40, 45, 50, 0.28)';
+      ctxW.lineWidth = 1.2;
+      for (let i = 0; i <= 512; i += 16) {
+        ctxW.beginPath();
+        ctxW.moveTo(i, 0); ctxW.lineTo(i, 512);
+        ctxW.stroke();
+        ctxW.beginPath();
+        ctxW.moveTo(0, i); ctxW.lineTo(512, i);
+        ctxW.stroke();
+      }
+      canvasWaffleTex = new THREE.CanvasTexture(cWaffle);
+      canvasWaffleTex.wrapS = THREE.RepeatWrapping;
+      canvasWaffleTex.wrapT = THREE.RepeatWrapping;
+      canvasWaffleTex.repeat.set(16, 16);
+
+      // 2. 纯正无网格的天然矿物水泥灰原浆贴图
+      const cPure = document.createElement('canvas');
+      cPure.width = 512;
+      cPure.height = 512;
+      const ctxP = cPure.getContext('2d');
+      ctxP.fillStyle = '#545c66';
+      ctxP.fillRect(0, 0, 512, 512);
+
+      for (let i = 0; i < (isCompactDevice ? 12000 : 28000); i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const s = Math.random() * 1.5;
+        const val = Math.floor(75 + Math.random() * 25);
+        ctxP.fillStyle = `rgb(${val}, ${val + 8}, ${val + 14})`;
+        ctxP.fillRect(x, y, s, s);
+      }
+      canvasPureCementTex = new THREE.CanvasTexture(cPure);
+      canvasPureCementTex.wrapS = THREE.RepeatWrapping;
+      canvasPureCementTex.wrapT = THREE.RepeatWrapping;
+      canvasPureCementTex.repeat.set(12, 12);
+
+      // 3. XPS 专用六面立体闭孔微孔贴图
+      const cXps = document.createElement('canvas');
+      cXps.width = 512;
+      cXps.height = 512;
+      const ctxX = cXps.getContext('2d');
+      ctxX.fillStyle = '#7cd3a8';
+      ctxX.fillRect(0, 0, 512, 512);
+
+      for (let i = 0; i < (isCompactDevice ? 16000 : 35000); i++) {
+        const x = Math.random() * 512;
+        const y = Math.random() * 512;
+        const r = 0.6 + Math.random() * 1.8;
+        const tone = Math.random();
+        if (tone > 0.6) {
+          ctxX.fillStyle = 'rgba(152, 235, 194, 0.45)';
+        } else if (tone < 0.25) {
+          ctxX.fillStyle = 'rgba(92, 175, 136, 0.55)';
+        } else {
+          ctxX.fillStyle = 'rgba(110, 195, 154, 0.35)';
+        }
+        ctxX.beginPath();
+        ctxX.arc(x, y, r, 0, Math.PI * 2);
+        ctxX.fill();
+      }
+      canvasXpsMicroBump = new THREE.CanvasTexture(cXps);
+      canvasXpsMicroBump.wrapS = THREE.RepeatWrapping;
+      canvasXpsMicroBump.wrapT = THREE.RepeatWrapping;
+      canvasXpsMicroBump.repeat.set(10, 10);
+
+      // 4. 白色玻纤经纬网格
+      const cMesh = document.createElement('canvas');
+      cMesh.width = 128;
+      cMesh.height = 128;
+      const ctxM = cMesh.getContext('2d');
+      ctxM.clearRect(0, 0, 128, 128);
+
+      ctxM.strokeStyle = 'rgba(255, 255, 255, 0.96)';
+      ctxM.lineWidth = 14;
+      ctxM.beginPath();
+      ctxM.moveTo(64, 0); ctxM.lineTo(64, 128);
+      ctxM.moveTo(0, 64); ctxM.lineTo(128, 64);
+      ctxM.stroke();
+
+      ctxM.strokeStyle = 'rgba(240, 245, 250, 0.45)';
+      ctxM.lineWidth = 22;
+      ctxM.beginPath();
+      ctxM.moveTo(64, 0); ctxM.lineTo(64, 128);
+      ctxM.moveTo(0, 64); ctxM.lineTo(128, 64);
+      ctxM.stroke();
+
+      canvasMeshAlpha = new THREE.CanvasTexture(cMesh);
+      canvasMeshAlpha.wrapS = THREE.RepeatWrapping;
+      canvasMeshAlpha.wrapT = THREE.RepeatWrapping;
+      canvasMeshAlpha.repeat.set(24, 24);
+    }
+
+    function init3DScene() {
+      if (!window.THREE || !THREE.OrbitControls) {
+        showRuntimeError();
+        return false;
+      }
+
+      raycaster = new THREE.Raycaster();
+      mouse = new THREE.Vector2();
+      generateTextures();
+
+      scene = new THREE.Scene();
+      scene.background = new THREE.Color(0xb6bec8);
+
+      camera = new THREE.PerspectiveCamera(42, container.clientWidth / container.clientHeight, 0.1, 1000);
+      camera.position.set(4.2, 3.4, 4.6);
+
+      renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, powerPreference: 'high-performance' });
+      renderer.setSize(container.clientWidth, container.clientHeight);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, isCompactDevice ? 1.25 : 2));
+      renderer.shadowMap.enabled = true;
+      renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+      container.appendChild(renderer.domElement);
+
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.maxPolarAngle = Math.PI / 2 + 0.05;
+      controls.minDistance = 1.6;
+      controls.maxDistance = 14;
+
+      const ambientLight = new THREE.AmbientLight(0xffffff, 0.72);
+      scene.add(ambientLight);
+
+      const mainKeyLight = new THREE.DirectionalLight(0xffffff, 0.95);
+      mainKeyLight.position.set(6, 12, 8);
+      mainKeyLight.castShadow = true;
+      mainKeyLight.shadow.mapSize.width = isCompactDevice ? 1024 : 2048;
+      mainKeyLight.shadow.mapSize.height = isCompactDevice ? 1024 : 2048;
+      mainKeyLight.shadow.bias = -0.0004;
+      scene.add(mainKeyLight);
+
+      const fillLight = new THREE.DirectionalLight(0xdbeafe, 0.45);
+      fillLight.position.set(-8, 6, -6);
+      scene.add(fillLight);
+
+      const rimLight = new THREE.DirectionalLight(0xffffff, 0.35);
+      rimLight.position.set(0, -6, 5);
+      scene.add(rimLight);
+
+      const floorGeo = new THREE.PlaneGeometry(30, 30);
+      const floorMat = new THREE.ShadowMaterial({ opacity: 0.18 });
+      const floor = new THREE.Mesh(floorGeo, floorMat);
+      floor.rotation.x = -Math.PI / 2;
+      floor.position.y = -1.4;
+      floor.receiveShadow = true;
+      scene.add(floor);
+
+      const grid = new THREE.GridHelper(20, 20, 0x94a3b8, 0xcfd8dc);
+      grid.position.y = -1.401;
+      scene.add(grid);
+
+      rebuildBoardModel();
+
+      window.addEventListener('resize', onWindowResize);
+      renderer.domElement.addEventListener('pointerdown', onCanvasPointerDown);
+      renderer.domElement.addEventListener('pointerup', onCanvasPointerUp);
+      renderer.domElement.addEventListener('dblclick', onCanvasDoubleClick);
+
+      animate();
+      return true;
+    }
+
+    function rebuildBoardModel() {
+      if (boardGroup) {
+        scene.remove(boardGroup);
+        layerMeshes.forEach(m => {
+          m.geometry.dispose();
+          if (m.material) m.material.dispose();
+        });
+        layerEdges.forEach(e => {
+          e.geometry.dispose();
+          e.material.dispose();
+        });
+      }
+
+      boardGroup = new THREE.Group();
+      layerMeshes = [];
+      layerEdges = [];
+
+      const spec = BOARD_SPECS[currentSpecIndex];
+      const scaleRef = 2.6 / 2440;
+      const bLength = spec.length * scaleRef;
+      const bWidth = spec.width * scaleRef;
+      const thicknessFactor = Math.max(0.18, (spec.thickness / 20) * 0.28);
+
+      const mortarThick = 0.026;
+      const meshThick = 0.007;
+      const xpsThick = thicknessFactor;
+
+      mortarTopMaterial = new THREE.MeshStandardMaterial({
+        map: canvasWaffleTex,
+        bumpMap: canvasWaffleTex,
+        bumpScale: 0.012,
+        roughness: 0.88,
+        metalness: 0.04,
+        color: 0x545c66
+      });
+
+      meshMaterial = new THREE.MeshStandardMaterial({
+        color: 0xffffff,
+        alphaMap: canvasMeshAlpha,
+        transparent: true,
+        roughness: 0.65,
+        metalness: 0.1,
+        side: THREE.DoubleSide
+      });
+
+      xpsMaterial = new THREE.MeshStandardMaterial({
+        color: 0x7cd3a8,
+        bumpMap: canvasXpsMicroBump,
+        bumpScale: 0.026,
+        roughness: 0.92,
+        metalness: 0.02
+      });
+
+      mortarBottomMaterial = new THREE.MeshStandardMaterial({
+        map: canvasPureCementTex,
+        bumpMap: canvasPureCementTex,
+        bumpScale: 0.015,
+        roughness: 0.88,
+        metalness: 0.04,
+        color: 0x545c66
+      });
+
+      const layersConfig = [
+        { name: 'top-mortar', geom: new THREE.BoxGeometry(bLength, mortarThick, bWidth), mat: mortarTopMaterial },
+        { name: 'top-mesh', geom: new THREE.BoxGeometry(bLength * 0.998, meshThick, bWidth * 0.998), mat: meshMaterial },
+        { name: 'xps-core', geom: new THREE.BoxGeometry(bLength, xpsThick, bWidth), mat: xpsMaterial },
+        { name: 'bottom-mesh', geom: new THREE.BoxGeometry(bLength * 0.998, meshThick, bWidth * 0.998), mat: meshMaterial },
+        { name: 'bottom-mortar', geom: new THREE.BoxGeometry(bLength, mortarThick, bWidth), mat: mortarBottomMaterial }
+      ];
+
+      layersConfig.forEach((cfg, idx) => {
+        const mesh = new THREE.Mesh(cfg.geom, cfg.mat);
+        mesh.castShadow = true;
+        mesh.receiveShadow = true;
+        mesh.userData = { layerIndex: idx, name: cfg.name };
+
+        const edgesGeo = new THREE.EdgesGeometry(cfg.geom, 24);
+        const edgesMat = new THREE.LineBasicMaterial({
+          color: 0xffffff,
+          linewidth: 1.5,
+          transparent: true,
+          opacity: idx === selectedLayerIndex ? 0.95 : 0.0
+        });
+        const edgeLine = new THREE.LineSegments(edgesGeo, edgesMat);
+        mesh.add(edgeLine);
+        layerEdges.push(edgeLine);
+
+        boardGroup.add(mesh);
+        layerMeshes.push(mesh);
+      });
+
+      scene.add(boardGroup);
+
+      currentPositionsX = [0, 0, 0, 0, 0];
+      currentPositionsY = [0, 0, 0, 0, 0];
+      computeTargetPositions();
+      applyExplosionProgress(explosionProgress);
+      updateSelectionHighlight();
+      updateInfoCard();
+    }
+
+    // 计算各层目标位置（结合爆炸图展开 + 选中单独置中 + 其他层向左平移）
+    function computeTargetPositions() {
+      if (!layerMeshes || layerMeshes.length < 5) return;
+
+      const maxSep = 0.55;
+      const xpsHeight = layerMeshes[2].geometry.parameters.height;
+      const mTopH = layerMeshes[0].geometry.parameters.height;
+      const meshH = layerMeshes[1].geometry.parameters.height;
+
+      // 标准垂直展开高度
+      const topMortarY = (xpsHeight / 2 + meshH + mTopH / 2) + explosionProgress * (maxSep * 1.8);
+      const topMeshY = (xpsHeight / 2 + meshH / 2) + explosionProgress * (maxSep * 0.9);
+      const xpsY = 0;
+      const bottomMeshY = -(xpsHeight / 2 + meshH / 2) - explosionProgress * (maxSep * 0.9);
+      const bottomMortarY = -(xpsHeight / 2 + meshH + mTopH / 2) - explosionProgress * (maxSep * 1.8);
+
+      const basePos = [topMortarY, topMeshY, xpsY, bottomMeshY, bottomMortarY];
+
+      // 板材真实宽度（用于计算合理的左移安全间距，完全移出不遮挡中间）
+      const spec = BOARD_SPECS[currentSpecIndex];
+      const scaleRef = 2.6 / 2440;
+      const bLength = spec.length * scaleRef;
+      const shiftDistanceX = -(bLength * 1.35 + 0.6); // 向左移出距离
+
+      const centeredLayerIndex = isolatedLayerIndex ?? selectedLayerIndex;
+      for (let i = 0; i < 5; i++) {
+        if (isShiftCenterMode) {
+          if (i === centeredLayerIndex) {
+            targetPositionsX[i] = 0; // 选中的当前层：绝对居中
+            targetPositionsY[i] = 0; // 选中的当前层：高度置中到视线正中心
+          } else {
+            targetPositionsX[i] = shiftDistanceX; // 其他非选中层：统一向左平移移出
+            targetPositionsY[i] = basePos[i];     // 保持原本爆炸图层级高低
+          }
+        } else {
+          targetPositionsX[i] = 0;
+          targetPositionsY[i] = basePos[i];
+        }
+      }
+    }
+
+    function applyExplosionProgress(progress) {
+      explosionProgress = progress;
+      computeTargetPositions();
+
+      // 展开时表面材质切换
+      if (mortarTopMaterial) {
+        if (progress > 0.08 || isShiftCenterMode) {
+          if (mortarTopMaterial.map !== canvasPureCementTex) {
+            mortarTopMaterial.map = canvasPureCementTex;
+            mortarTopMaterial.bumpMap = canvasPureCementTex;
+            mortarTopMaterial.needsUpdate = true;
+          }
+        } else {
+          if (mortarTopMaterial.map !== canvasWaffleTex) {
+            mortarTopMaterial.map = canvasWaffleTex;
+            mortarTopMaterial.bumpMap = canvasWaffleTex;
+            mortarTopMaterial.needsUpdate = true;
+          }
+        }
+      }
+
+      // 控制顶部“一键复原整体”按钮显隐
+      const btnRestore = document.getElementById('btn-restore-top');
+      if (progress > 0.08 || isShiftCenterMode) {
+        btnRestore.classList.remove('hidden');
+        btnRestore.classList.add('flex');
+      } else {
+        btnRestore.classList.add('hidden');
+        btnRestore.classList.remove('flex');
+      }
+
+      document.getElementById('explode-percent').textContent = `${Math.round(progress * 100)}%`;
+      document.getElementById('explode-slider').value = Math.round(progress * 100);
+    }
+
+    let targetExplosion = 0;
+    let explosionAnimationFrame = null;
+    function setExplosion(targetVal) {
+      targetExplosion = targetVal;
+      // 如果用户正在单层置中模式，拉动或展开爆炸图时自动退出置中模式恢复完整阵列
+      if (isShiftCenterMode && targetVal === 0) {
+        pullBackAllLayers();
+      }
+      if (explosionAnimationFrame === null) {
+        explosionAnimationFrame = requestAnimationFrame(animateExplosion);
+      }
+    }
+
+    function animateExplosion() {
+      const diff = targetExplosion - explosionProgress;
+      if (Math.abs(diff) > 0.005) {
+        applyExplosionProgress(explosionProgress + diff * 0.15);
+        explosionAnimationFrame = requestAnimationFrame(animateExplosion);
+      } else {
+        applyExplosionProgress(targetExplosion);
+        explosionAnimationFrame = null;
+      }
+    }
+
+    function onExplodeInput(val) {
+      if (explosionAnimationFrame !== null) {
+        cancelAnimationFrame(explosionAnimationFrame);
+        explosionAnimationFrame = null;
+      }
+      targetExplosion = val / 100;
+      applyExplosionProgress(targetExplosion);
+    }
+
+    // 一键复原整体 (合拢板材并拉回所有层)
+    function restoreWholeBoard() {
+      isShiftCenterMode = false;
+      isolatedLayerIndex = null;
+      setShiftRestoreVisibility(false);
+      updateIsolateButtonText();
+      setExplosion(0);
+    }
+
+    function setShiftRestoreVisibility(visible) {
+      const button = document.getElementById('shift-restore-badge');
+      button.classList.toggle('hidden', !visible);
+      button.classList.toggle('flex', visible);
+    }
+
+    function enterCenterShiftModeForLayer(idx) {
+      selectLayer(idx);
+      isShiftCenterMode = true;
+      isolatedLayerIndex = idx;
+      updateIsolateButtonText();
+      setShiftRestoreVisibility(true);
+
+      if (explosionAnimationFrame !== null) {
+        cancelAnimationFrame(explosionAnimationFrame);
+        explosionAnimationFrame = null;
+      }
+
+      targetExplosion = Math.max(explosionProgress, 0.35);
+      applyExplosionProgress(targetExplosion);
+    }
+
+    // 单层置中、其他层向左平移；按钮用于进入或退出该模式
+    function toggleCenterShiftCurrentLayer() {
+      if (isShiftCenterMode) {
+        isShiftCenterMode = false;
+        isolatedLayerIndex = null;
+        updateIsolateButtonText();
+        setShiftRestoreVisibility(false);
+        computeTargetPositions();
+      } else {
+        enterCenterShiftModeForLayer(selectedLayerIndex);
+      }
+    }
+
+    // 旁边一键把全部结构拉回来的按钮功能
+    function pullBackAllLayers() {
+      isShiftCenterMode = false;
+      isolatedLayerIndex = null;
+      computeTargetPositions();
+      updateIsolateButtonText();
+      setShiftRestoreVisibility(false);
+    }
+
+    function updateIsolateButtonText() {
+      const btn = document.getElementById('btn-isolate');
+      const langData = I18N[currentLang];
+      if (isShiftCenterMode) {
+        btn.classList.add('bg-amber-100', 'text-amber-900', 'border-amber-400');
+        btn.classList.remove('bg-emerald-50', 'text-emerald-800', 'border-emerald-300');
+        document.getElementById('ui-btn-isolate').textContent = langData.btnPullback;
+      } else {
+        btn.classList.remove('bg-amber-100', 'text-amber-900', 'border-amber-400');
+        btn.classList.add('bg-emerald-50', 'text-emerald-800', 'border-emerald-300');
+        document.getElementById('ui-btn-isolate').textContent = langData.btnIsolate;
+      }
+    }
+
+    // 选择指定层并保证画面与简介严格同步显示（彻底修复原先选网格看不见的bug）
+    function selectLayer(idx) {
+      selectedLayerIndex = idx;
+
+      updateSelectionHighlight();
+      updateInfoCard();
+      setCardVisibility(true);
+
+      // 确保所有层 mesh 处于完全可见状态
+      layerMeshes.forEach(m => m.visible = true);
+
+      // 同步底部层级高亮按钮
+      for (let i = 0; i < 5; i++) {
+        const tab = document.getElementById(`tab-layer-${i}`);
+        if (i === idx) {
+          tab.className = "py-1 px-1 rounded-lg border border-emerald-600 bg-emerald-50 text-emerald-800 font-bold transition truncate shadow-xs";
+        } else {
+          tab.className = "py-1 px-1 rounded-lg border border-slate-200 bg-slate-50 text-slate-700 hover:border-emerald-400 transition truncate";
+        }
+      }
+    }
+
+    function toggleLayerCenterFromTab(idx) {
+      if (isShiftCenterMode && isolatedLayerIndex === idx) {
+        pullBackAllLayers();
+        return;
+      }
+      enterCenterShiftModeForLayer(idx);
+    }
+
+    function updateSelectionHighlight() {
+      layerEdges.forEach((edge, idx) => {
+        if (idx === selectedLayerIndex) {
+          edge.material.opacity = 0.95;
+        } else {
+          edge.material.opacity = 0.0;
+        }
+      });
+    }
+
+    function updateInfoCard() {
+      const langData = I18N[currentLang];
+      const layerInfo = langData.layers[selectedLayerIndex];
+
+      document.getElementById('card-layer-tag').textContent = layerInfo.tag;
+      document.getElementById('card-title').textContent = layerInfo.name;
+      document.getElementById('card-subtitle').textContent = layerInfo.sub;
+      document.getElementById('card-desc').textContent = layerInfo.desc;
+
+      document.getElementById('prop-k1-name').textContent = layerInfo.k1[0];
+      document.getElementById('prop-k1-val').textContent = layerInfo.k1[1];
+      document.getElementById('prop-k2-name').textContent = layerInfo.k2[0];
+      document.getElementById('prop-k2-val').textContent = layerInfo.k2[1];
+      document.getElementById('prop-k3-name').textContent = layerInfo.k3[0];
+      document.getElementById('prop-k3-val').textContent = layerInfo.k3[1];
+      document.getElementById('prop-k4-name').textContent = layerInfo.k4[0];
+      document.getElementById('prop-k4-val').textContent = layerInfo.k4[1];
+    }
+
+    function setCardVisibility(isVisible) {
+      const card = document.getElementById('inspector-card');
+      const showButton = document.getElementById('btn-show-inspector');
+      card.classList.toggle('hidden', !isVisible);
+      showButton.classList.toggle('hidden', isVisible);
+      showButton.classList.toggle('flex', !isVisible);
+    }
+
+    function toggleCardVisibility() {
+      const isCurrentlyVisible = !document.getElementById('inspector-card').classList.contains('hidden');
+      setCardVisibility(!isCurrentlyVisible);
+    }
+
+    function toggleSpecsModal(forceOpen) {
+      const modal = document.getElementById('specs-modal');
+      const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : modal.classList.contains('hidden');
+      modal.classList.toggle('hidden', !shouldOpen);
+      modal.classList.toggle('flex', shouldOpen);
+      modal.setAttribute('aria-hidden', String(!shouldOpen));
+      if (shouldOpen) {
+        document.getElementById('modal-close-icon').focus();
+      }
+    }
+
+    // 视角控制与环绕功能
+    let isAutoRotating = false;
+    function toggleAutoRotate() {
+      isAutoRotating = !isAutoRotating;
+      controls.autoRotate = isAutoRotating;
+      controls.autoRotateSpeed = 1.8;
+      const btn = document.getElementById('btn-auto-rotate');
+      if (isAutoRotating) {
+        btn.classList.add('bg-emerald-100', 'text-emerald-800');
+      } else {
+        btn.classList.remove('bg-emerald-100', 'text-emerald-800');
+      }
+    }
+
+    function resetCameraAndFocus() {
+      camera.position.set(4.2, 3.4, 4.6);
+      controls.target.set(0, 0, 0);
+      controls.update();
+    }
+
+    function setCameraView(type) {
+      if (type === 'iso') {
+        camera.position.set(4.2, 3.4, 4.6);
+        controls.target.set(0, 0, 0);
+      } else if (type === 'section') {
+        camera.position.set(5.5, 0.2, 0);
+        controls.target.set(0, 0, 0);
+      } else if (type === 'top') {
+        camera.position.set(0.01, 6.2, 0);
+        controls.target.set(0, 0, 0);
+      }
+      controls.update();
+    }
+
+    let raycaster;
+    let mouse;
+    let pointerDownState = null;
+
+    function onCanvasPointerDown(event) {
+      pointerDownState = { x: event.clientX, y: event.clientY, pointerId: event.pointerId };
+    }
+
+    function getLayerIndexAtCanvasPoint(event) {
+      const rect = renderer.domElement.getBoundingClientRect();
+      mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+      mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+
+      raycaster.setFromCamera(mouse, camera);
+      const intersects = raycaster.intersectObjects(layerMeshes);
+      if (intersects.length === 0) return null;
+
+      const hit = intersects[0].object;
+      return hit.userData && Number.isInteger(hit.userData.layerIndex)
+        ? hit.userData.layerIndex
+        : null;
+    }
+
+    function onCanvasPointerUp(event) {
+      if (!pointerDownState || pointerDownState.pointerId !== event.pointerId) return;
+      const moveDistance = Math.hypot(event.clientX - pointerDownState.x, event.clientY - pointerDownState.y);
+      pointerDownState = null;
+      if (moveDistance > 6) return;
+
+      const layerIndex = getLayerIndexAtCanvasPoint(event);
+      if (layerIndex !== null) {
+        selectLayer(layerIndex);
+        if (explosionProgress === 0 && !isShiftCenterMode) {
+          setExplosion(0.28);
+        }
+      }
+    }
+
+    function onCanvasDoubleClick(event) {
+      const layerIndex = getLayerIndexAtCanvasPoint(event);
+      if (layerIndex === null) return;
+      event.preventDefault();
+      if (isShiftCenterMode && isolatedLayerIndex === layerIndex) {
+        pullBackAllLayers();
+        return;
+      }
+      enterCenterShiftModeForLayer(layerIndex);
+    }
+
+    function onWindowResize() {
+      camera.aspect = container.clientWidth / container.clientHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(container.clientWidth, container.clientHeight);
+    }
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      if (document.hidden) return;
+
+      // 平滑插值动画驱动 X / Y 轴平移（平滑平移至左侧或置中）
+      for (let i = 0; i < layerMeshes.length; i++) {
+        currentPositionsX[i] += (targetPositionsX[i] - currentPositionsX[i]) * 0.12;
+        currentPositionsY[i] += (targetPositionsY[i] - currentPositionsY[i]) * 0.12;
+
+        layerMeshes[i].position.x = currentPositionsX[i];
+        layerMeshes[i].position.y = currentPositionsY[i];
+      }
+
+      controls.update();
+      renderer.render(scene, camera);
+    }
+
+    function showRuntimeError() {
+      const status = document.getElementById('runtime-status');
+      status.textContent = I18N[currentLang].runtimeError;
+      status.classList.remove('hidden');
+    }
+
+    // ==========================================
+    // 4. 规格切换与 UI 渲染
+    // ==========================================
+    function initSpecButtons() {
+      const container = document.getElementById('spec-buttons-container');
+      container.innerHTML = '';
+
+      BOARD_SPECS.forEach((item, index) => {
+        const btn = document.createElement('button');
+        btn.id = `spec-btn-${index}`;
+        btn.className = `px-2.5 py-1 rounded-lg font-medium transition shrink-0 ${
+          index === currentSpecIndex
+            ? 'bg-emerald-600 text-white shadow-xs font-semibold'
+            : 'text-slate-600 hover:bg-white hover:text-slate-900'
+        }`;
+        btn.textContent = item.labels[currentLang] || item.labels.en;
+        btn.onclick = () => selectSpec(index);
+        container.appendChild(btn);
+      });
+
+      updateSpecInfoDisplay();
+    }
+
+    function enableSpecPickerWheelScroll() {
+      const picker = document.getElementById('spec-picker');
+      const scroller = document.getElementById('spec-buttons-scroll');
+      picker.addEventListener('wheel', (event) => {
+        if (scroller.scrollWidth <= scroller.clientWidth) return;
+
+        const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY)
+          ? event.deltaX
+          : event.deltaY;
+        if (delta === 0) return;
+
+        const previousScrollLeft = scroller.scrollLeft;
+        scroller.scrollLeft += delta;
+        if (scroller.scrollLeft !== previousScrollLeft) event.preventDefault();
+      }, { passive: false });
+    }
+
+    function selectSpec(index) {
+      currentSpecIndex = index;
+      BOARD_SPECS.forEach((_, i) => {
+        const btn = document.getElementById(`spec-btn-${i}`);
+        if (btn) {
+          if (i === index) {
+            btn.className = 'px-2.5 py-1 rounded-lg font-semibold bg-emerald-600 text-white shadow-xs shrink-0';
+          } else {
+            btn.className = 'px-2.5 py-1 rounded-lg font-medium text-slate-600 hover:bg-white hover:text-slate-900 shrink-0';
+          }
+        }
+      });
+
+      updateSpecInfoDisplay();
+      rebuildBoardModel();
+    }
+
+    function updateSpecInfoDisplay() {
+      const spec = BOARD_SPECS[currentSpecIndex];
+      const langData = I18N[currentLang];
+
+      document.getElementById('spec-sku-display').textContent = spec.sku;
+      document.getElementById('spec-dim-display').textContent = `${langData.dimPrefix}${spec.descriptions[currentLang] || spec.descriptions.en}`;
+      updateProductMetrics();
+    }
+
+    function updateProductMetrics() {
+      const spec = BOARD_SPECS[currentSpecIndex];
+      const locale = I18N[currentLang].htmlLang;
+      const areaSquareMeters = (spec.length * spec.width) / 1000000;
+      const areaValue = new Intl.NumberFormat(locale, {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }).format(areaSquareMeters);
+
+      document.getElementById('metric-area-value').textContent = areaValue;
+
+      const hasWeight = Number.isFinite(spec.weightKg);
+      const weightItem = document.getElementById('metric-weight-item');
+      const metricsGrid = document.getElementById('metrics-grid');
+      weightItem.classList.toggle('hidden', !hasWeight);
+      metricsGrid.style.gridTemplateColumns = hasWeight
+        ? 'repeat(2, minmax(0, 1fr))'
+        : 'minmax(0, 1fr)';
+
+      if (hasWeight) {
+        document.getElementById('metric-weight-value').textContent = new Intl.NumberFormat(locale, {
+          maximumFractionDigits: 2
+        }).format(spec.weightKg);
+      }
+    }
+
+    // ==========================================
+    // 5. 多语言全站即时切换引擎
+    // ==========================================
+    function setText(id, value) {
+      const element = document.getElementById(id);
+      if (!element) {
+        console.warn(`Missing translation target: #${id}`);
+        return;
+      }
+      element.textContent = value;
+    }
+
+    function setAccessibleLabel(id, value) {
+      const element = document.getElementById(id);
+      if (!element) return;
+      element.title = value;
+      element.setAttribute('aria-label', value);
+    }
+
+    function renderSpecsModal(data) {
+      setText('modal-title', data.modal.title);
+      setText('modal-subtitle', data.modal.subtitle);
+      setText('modal-head-item', data.modal.headers[0]);
+      setText('modal-head-method', data.modal.headers[1]);
+      setText('modal-head-result', data.modal.headers[2]);
+      setText('modal-head-assessment', data.modal.headers[3]);
+      setText('modal-note', data.modal.note);
+      setText('modal-close-button', data.modal.close);
+
+      const body = document.getElementById('modal-table-body');
+      body.innerHTML = '';
+      data.modal.rows.forEach((row) => {
+        const tr = document.createElement('tr');
+        row.forEach((value, index) => {
+          const td = document.createElement('td');
+          td.className = index === 0 ? 'p-2.5 font-medium' : index === 2 ? 'p-2.5 font-semibold text-emerald-700' : 'p-2.5';
+          td.textContent = value;
+          tr.appendChild(td);
+        });
+        body.appendChild(tr);
+      });
+    }
+
+    function changeLanguage(langKey) {
+      if (!I18N[langKey]) langKey = 'zh';
+      currentLang = langKey;
+      const data = I18N[langKey];
+
+      document.documentElement.lang = data.htmlLang;
+      document.documentElement.dir = data.dir;
+      document.title = data.documentTitle;
+      document.getElementById('lang-selector').value = langKey;
+      try {
+        localStorage.setItem('hydroblok-lang', langKey);
+      } catch (_) {
+        // Language still changes even when local storage is unavailable.
+      }
+
+      setText('ui-brand-title', data.brandTitle);
+      setText('ui-subtitle', data.subtitle);
+      setText('ui-std-tag', data.stdTag);
+      setText('ui-spec-label', data.specLabel);
+      setText('ui-metrics-title', data.metricsTitle);
+      setText('ui-area-label', data.areaLabel);
+      setText('ui-weight-label', data.weightLabel);
+      setText('ui-btn-restore', data.restoreTop);
+      setText('ui-current-sku-title', data.currentSku);
+      setText('ui-hint-drag', data.dragHint);
+      setText('ui-scale-note', data.scaleNote);
+      setText('ui-explode-label', data.explodeLabel);
+      setText('ui-btn-assemble', data.btnAssemble);
+      setText('ui-btn-explode-all', data.btnExplodeAll);
+      setText('ui-btn-isolate', isShiftCenterMode ? data.btnPullback : data.btnIsolate);
+      setText('ui-btn-pullback', data.btnPullback);
+      setText('ui-btn-pullback-side', data.btnPullbackSide);
+      setText('ui-btn-rotate', data.btnRotate);
+      setText('ui-btn-reset-view', data.btnResetView);
+      setText('ui-btn-specs-doc', data.btnSpecsDoc);
+      setText('ui-btn-show-details', data.btnShowDetails);
+      setText('btn-view-iso', data.viewIso);
+      setText('btn-view-section', data.viewSection);
+      setText('btn-view-top', data.viewTop);
+
+      setAccessibleLabel('btn-auto-rotate', data.titleAutoRotate);
+      setAccessibleLabel('btn-reset-view', data.titleResetView);
+      setAccessibleLabel('btn-close-inspector', data.titleCloseInspector);
+      setAccessibleLabel('modal-close-icon', data.titleCloseSpecs);
+      setAccessibleLabel('spec-picker', data.specWheelHint);
+      document.getElementById('explode-slider').setAttribute('aria-label', data.sliderLabel);
+
+      for (let i = 0; i < 5; i++) {
+        setText(`tab-layer-${i}`, `${i + 1}. ${data.layers[i].shortName}`);
+      }
+
+      const specsTable = document.querySelector('#specs-modal table');
+      specsTable.classList.toggle('text-right', data.dir === 'rtl');
+      specsTable.classList.toggle('text-left', data.dir !== 'rtl');
+
+      initSpecButtons();
+      updateInfoCard();
+      renderSpecsModal(data);
+
+      const runtimeStatus = document.getElementById('runtime-status');
+      if (!runtimeStatus.classList.contains('hidden')) runtimeStatus.textContent = data.runtimeError;
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      if (window.lucide) lucide.createIcons();
+      changeLanguage(currentLang);
+      enableSpecPickerWheelScroll();
+      init3DScene();
+    });
+
+    document.addEventListener('keydown', (event) => {
+      if (event.key === 'Escape') {
+        const modal = document.getElementById('specs-modal');
+        if (!modal.classList.contains('hidden')) toggleSpecsModal(false);
+      }
+    });
+  </script>
+</body>
+</html>
