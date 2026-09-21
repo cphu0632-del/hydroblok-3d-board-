@@ -166,37 +166,42 @@
       }
     }
 
+    /* RTL changes the text flow, while the desktop card regions stay fixed. */
     [dir="rtl"] #current-spec-card {
-      right: 1rem;
-      left: auto;
+      right: auto !important;
+      left: 1rem !important;
     }
 
     [dir="rtl"] #product-metrics-card {
-      right: 22rem;
-      left: auto;
+      right: auto !important;
+      left: 22rem !important;
     }
 
     [dir="rtl"] #inspector-card,
     [dir="rtl"] #btn-show-inspector {
-      right: auto;
-      left: 1rem;
+      right: 1rem !important;
+      left: auto !important;
     }
 
     @media (max-width: 900px) {
-      [dir="rtl"] #current-spec-card,
-      [dir="rtl"] #inspector-card {
-        right: 0.5rem;
-        left: 0.5rem;
+      [dir="rtl"] #current-spec-card {
+        right: auto !important;
+        left: 0.5rem !important;
       }
 
       [dir="rtl"] #product-metrics-card {
-        right: 0.5rem;
-        left: auto;
+        right: auto !important;
+        left: 0.5rem !important;
+      }
+
+      [dir="rtl"] #inspector-card {
+        right: 0.5rem !important;
+        left: 0.5rem !important;
       }
 
       [dir="rtl"] #btn-show-inspector {
-        right: auto;
-        left: 0.5rem;
+        right: 0.5rem !important;
+        left: auto !important;
       }
     }
 
@@ -750,8 +755,8 @@
       }
 
       [dir="rtl"] #product-metrics-card {
-        right: 0.5rem !important;
-        left: auto !important;
+        right: auto !important;
+        left: 0.5rem !important;
       }
     }
 
