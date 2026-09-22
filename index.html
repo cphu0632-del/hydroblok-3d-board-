@@ -445,6 +445,176 @@
       box-shadow: 0 8px 17px rgba(17, 28, 45, 0.2), inset 0 1px 0 rgba(255,255,255,0.12) !important;
     }
 
+    #contact-button {
+      color: #fff !important;
+      border-color: rgba(5, 119, 86, 0.72) !important;
+      background: linear-gradient(135deg, #12a67c, #087458) !important;
+      box-shadow: 0 8px 18px rgba(8, 116, 88, 0.23), inset 0 1px 0 rgba(255,255,255,0.22) !important;
+    }
+
+    #contact-button:hover {
+      background: linear-gradient(135deg, #0f9872, #06674e) !important;
+      box-shadow: 0 10px 22px rgba(8, 116, 88, 0.29), inset 0 1px 0 rgba(255,255,255,0.25) !important;
+    }
+
+    #contact-modal-card {
+      box-sizing: border-box;
+      position: relative;
+      width: min(100%, 28rem);
+      overflow: hidden;
+      padding: 1.5rem;
+      border: 1px solid rgba(255,255,255,0.82);
+      border-radius: 1rem;
+      background: linear-gradient(150deg, rgba(255,255,255,0.99), rgba(244,249,247,0.98));
+      box-shadow: 0 28px 72px rgba(15, 30, 42, 0.28), 0 3px 10px rgba(15, 30, 42, 0.12);
+    }
+
+    #contact-modal {
+      position: fixed;
+      inset: 0;
+      z-index: 55;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      background: rgba(2, 10, 22, 0.55);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+    }
+
+    #contact-modal.hidden { display: none; }
+    #contact-modal.flex { display: flex; }
+
+    .contact-modal-accent {
+      position: absolute;
+      inset: 0 0 auto;
+      height: 4px;
+      background: linear-gradient(90deg, #087458, #42c69b, transparent);
+    }
+
+    .contact-modal-header,
+    .contact-modal-heading-wrap,
+    .contact-channel {
+      display: flex;
+      align-items: center;
+    }
+
+    .contact-modal-header {
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+      padding-bottom: 1rem;
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    .contact-modal-heading-wrap { align-items: flex-start; gap: 0.75rem; min-width: 0; }
+    .contact-modal-copy { min-width: 0; }
+    #contact-modal-title { margin: 0; color: #17263a; font-size: 1.125rem; line-height: 1.35; font-weight: 750; }
+    #contact-modal-subtitle { margin: 0.25rem 0 0; color: #64748b; font-size: 0.75rem; line-height: 1.6; }
+
+    .contact-brand-icon,
+    .contact-channel-icon {
+      display: grid;
+      flex: 0 0 auto;
+      place-items: center;
+      color: #fff;
+    }
+
+    .contact-brand-icon {
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.75rem;
+      background: #0c916d;
+      box-shadow: 0 7px 16px rgba(8, 116, 88, 0.2);
+    }
+
+    .contact-close-button {
+      flex: 0 0 auto;
+      padding: 0.5rem;
+      border: 0;
+      border-radius: 0.5rem;
+      color: #94a3b8;
+      background: transparent;
+      cursor: pointer;
+    }
+
+    .contact-close-button:hover { color: #334155; background: #f1f5f9; }
+
+    .contact-channels {
+      display: grid;
+      gap: 0.625rem;
+      margin-top: 1rem;
+    }
+
+    .contact-channel {
+      gap: 0.75rem;
+      min-width: 0;
+      padding: 0.875rem;
+      border: 1px solid rgba(148, 163, 184, 0.28);
+      border-radius: 0.75rem;
+      color: inherit;
+      background: rgba(255,255,255,0.72);
+      text-decoration: none;
+      transition: transform 150ms ease, border-color 150ms ease, background 150ms ease, box-shadow 150ms ease;
+    }
+
+    #contact-whatsapp-link { border-color: rgba(52, 211, 153, 0.32); background: rgba(236, 253, 245, 0.78); }
+
+    .contact-channel-icon {
+      width: 2.25rem;
+      height: 2.25rem;
+      border-radius: 0.5rem;
+      background: #24384e;
+    }
+
+    .contact-channel-icon-primary { background: #0c916d; }
+    .contact-channel-copy { flex: 1 1 auto; min-width: 0; }
+
+    .contact-channel-label {
+      display: block;
+      color: #64748b;
+      font-size: 0.625rem;
+      line-height: 1.35;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    #contact-whatsapp-label { color: #087458; }
+
+    .contact-channel:hover {
+      transform: translateY(-1px);
+      border-color: rgba(10, 145, 108, 0.42) !important;
+      background: #fff !important;
+      box-shadow: 0 10px 24px rgba(28, 54, 67, 0.09);
+    }
+
+    .contact-channel-value {
+      display: block;
+      min-width: 0;
+      margin-top: 0.125rem;
+      color: #17263a;
+      font-size: 0.875rem;
+      line-height: 1.4;
+      font-weight: 700;
+      overflow-wrap: anywhere;
+      user-select: text;
+    }
+
+    .contact-channel-action {
+      flex: 0 0 auto;
+      color: #526273;
+      font-size: 0.6875rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    #contact-whatsapp-action { color: #087458; }
+
+    @media (max-width: 480px) {
+      #contact-modal-card { padding: 1.1rem; }
+      .contact-channel-action { display: none; }
+    }
+
     #canvas-container {
       background: #b6bec8;
     }
@@ -935,6 +1105,12 @@
         <span id="ui-btn-specs-doc">已核验测试数据</span>
       </button>
 
+      <!-- 全局联系入口：板材与全屋模型保持相同位置 -->
+      <button id="contact-button" type="button" onclick="toggleContactModal(true)" class="flex items-center gap-1.5 px-2.5 py-1.5 text-white rounded-lg text-xs font-semibold shadow-xs transition" aria-haspopup="dialog" aria-controls="contact-modal" aria-expanded="false">
+        <i data-lucide="messages-square" class="w-3.5 h-3.5"></i>
+        <span id="ui-contact-button">联系我们</span>
+      </button>
+
       <!-- 6 种语言切换 -->
       <div class="relative flex items-center bg-slate-100 border border-slate-300 rounded-lg p-1">
         <i data-lucide="globe" class="w-4 h-4 text-slate-500 mx-1"></i>
@@ -1100,6 +1276,56 @@
   <iframe id="whole-house-frame" class="hidden" title="HYDRO-BLOK 全屋应用三维交互模型"></iframe>
 <script type="text/plain" id="whole-house-html-base64"></script>
 
+  <!-- 全局联系信息弹窗 -->
+  <div id="contact-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="contact-modal-title" class="fixed inset-0 z-[55] bg-slate-950/55 backdrop-blur-sm hidden items-center justify-center p-4" onclick="handleContactBackdrop(event)">
+    <div id="contact-modal-card" class="relative w-full max-w-md overflow-hidden rounded-2xl border border-white/80 p-5 sm:p-6" tabindex="-1">
+      <div class="contact-modal-accent absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-emerald-700 via-emerald-400 to-transparent"></div>
+      <div class="contact-modal-header flex items-start justify-between gap-4 border-b border-slate-200/80 pb-4">
+        <div class="contact-modal-heading-wrap flex min-w-0 items-start gap-3">
+          <div class="contact-brand-icon grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-emerald-600 text-white shadow-md shadow-emerald-900/15">
+            <i data-lucide="headphones" class="h-5 w-5"></i>
+          </div>
+          <div class="contact-modal-copy min-w-0">
+            <h2 id="contact-modal-title" class="text-lg font-bold tracking-tight text-slate-900">联系佳拓</h2>
+            <p id="contact-modal-subtitle" class="mt-1 text-xs leading-relaxed text-slate-500">产品规格、应用方案与商务合作咨询</p>
+          </div>
+        </div>
+        <button id="contact-modal-close" type="button" onclick="toggleContactModal(false)" class="contact-close-button shrink-0 rounded-lg p-2 text-slate-400 transition hover:bg-slate-100 hover:text-slate-700" title="关闭联系信息" aria-label="关闭联系信息">
+          <i data-lucide="x" class="h-5 w-5"></i>
+        </button>
+      </div>
+
+      <div class="contact-channels mt-4 grid gap-2.5">
+        <a id="contact-whatsapp-link" class="contact-channel flex items-center gap-3 rounded-xl border border-emerald-200/80 bg-emerald-50/75 p-3.5" href="https://wa.me/8618914832778" target="_blank" rel="noopener noreferrer">
+          <span class="contact-channel-icon contact-channel-icon-primary grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-emerald-600 text-white"><i data-lucide="message-circle" class="h-[18px] w-[18px]"></i></span>
+          <span class="contact-channel-copy min-w-0 flex-1">
+            <span id="contact-whatsapp-label" class="contact-channel-label block text-[10px] font-semibold uppercase tracking-[0.08em] text-emerald-700">WhatsApp</span>
+            <strong class="contact-channel-value mt-0.5 block text-sm text-slate-900" dir="ltr">+86 189 1483 2778</strong>
+          </span>
+          <span id="contact-whatsapp-action" class="contact-channel-action shrink-0 text-[11px] font-semibold text-emerald-700">发起沟通</span>
+        </a>
+
+        <a id="contact-phone-link" class="contact-channel flex items-center gap-3 rounded-xl border border-slate-200 bg-white/70 p-3.5" href="tel:+8618914832778">
+          <span class="contact-channel-icon grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-800 text-white"><i data-lucide="phone" class="h-[18px] w-[18px]"></i></span>
+          <span class="contact-channel-copy min-w-0 flex-1">
+            <span id="contact-phone-label" class="contact-channel-label block text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">电话</span>
+            <strong class="contact-channel-value mt-0.5 block text-sm text-slate-900" dir="ltr">+86 189 1483 2778</strong>
+          </span>
+          <span id="contact-phone-action" class="contact-channel-action shrink-0 text-[11px] font-semibold text-slate-600">拨打电话</span>
+        </a>
+
+        <a id="contact-email-link" class="contact-channel flex items-center gap-3 rounded-xl border border-slate-200 bg-white/70 p-3.5" href="mailto:sale1@justtopbuild.com">
+          <span class="contact-channel-icon grid h-9 w-9 shrink-0 place-items-center rounded-lg bg-slate-800 text-white"><i data-lucide="mail" class="h-[18px] w-[18px]"></i></span>
+          <span class="contact-channel-copy min-w-0 flex-1">
+            <span id="contact-email-label" class="contact-channel-label block text-[10px] font-semibold uppercase tracking-[0.08em] text-slate-500">邮箱</span>
+            <strong class="contact-channel-value mt-0.5 block text-sm text-slate-900" dir="ltr">sale1@justtopbuild.com</strong>
+          </span>
+          <span id="contact-email-action" class="contact-channel-action shrink-0 text-[11px] font-semibold text-slate-600">发送邮件</span>
+        </a>
+      </div>
+    </div>
+  </div>
+
   <!-- 工程检验参数与物理性能标准弹窗 -->
   <div id="specs-modal" role="dialog" aria-modal="true" aria-hidden="true" aria-labelledby="modal-title" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden items-center justify-center p-4">
     <div id="modal-card" class="bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto p-6 border border-slate-200 animate-in fade-in zoom-in-95 duration-200">
@@ -1157,6 +1383,16 @@
         brandTitle: "HYDRO-BLOK 格兰板",
         modelBoard: "板材结构",
         modelHouse: "全屋应用示意",
+        contactButton: "联系我们",
+        contactTitle: "联系佳拓",
+        contactSubtitle: "产品规格、应用方案与商务合作咨询",
+        contactWhatsAppLabel: "WhatsApp",
+        contactPhoneLabel: "电话",
+        contactEmailLabel: "邮箱",
+        contactWhatsAppAction: "发起沟通",
+        contactPhoneAction: "拨打电话",
+        contactEmailAction: "发送邮件",
+        contactClose: "关闭联系信息",
         houseBrandTitle: "HYDRO-BLOK 全屋应用系统",
         houseSubtitle: "建筑防水隔热复合结构板 · 全屋应用 3D 交互示意",
         houseSpecLabel: "应用区域:",
@@ -1280,6 +1516,16 @@
         brandTitle: "HYDRO-BLOK Wallboard",
         modelBoard: "Board Structure",
         modelHouse: "Whole House",
+        contactButton: "Contact Us",
+        contactTitle: "Contact JUST TOP",
+        contactSubtitle: "Product specifications, application solutions and business inquiries",
+        contactWhatsAppLabel: "WhatsApp",
+        contactPhoneLabel: "Phone",
+        contactEmailLabel: "Email",
+        contactWhatsAppAction: "Chat now",
+        contactPhoneAction: "Call us",
+        contactEmailAction: "Send email",
+        contactClose: "Close contact details",
         houseBrandTitle: "HYDRO-BLOK Whole House System",
         houseSubtitle: "Waterproof and thermal-insulation composite board · Interactive whole-house 3D guide",
         houseSpecLabel: "Application Areas:",
@@ -1403,6 +1649,16 @@
         brandTitle: "Panel HYDRO-BLOK",
         modelBoard: "Estructura del panel",
         modelHouse: "Sistema integral",
+        contactButton: "Contáctenos",
+        contactTitle: "Contacte con JUST TOP",
+        contactSubtitle: "Consultas sobre especificaciones, soluciones de aplicación y colaboración comercial",
+        contactWhatsAppLabel: "WhatsApp",
+        contactPhoneLabel: "Teléfono",
+        contactEmailLabel: "Correo electrónico",
+        contactWhatsAppAction: "Escribir",
+        contactPhoneAction: "Llamar",
+        contactEmailAction: "Enviar correo",
+        contactClose: "Cerrar los datos de contacto",
         houseBrandTitle: "Sistema integral HYDRO-BLOK",
         houseSubtitle: "Panel compuesto impermeable y termoaislante · Guía 3D interactiva para toda la vivienda",
         houseSpecLabel: "Zonas de aplicación:",
@@ -1526,6 +1782,16 @@
         brandTitle: "Panneau HYDRO-BLOK",
         modelBoard: "Structure du panneau",
         modelHouse: "Maison complète",
+        contactButton: "Nous contacter",
+        contactTitle: "Contacter JUST TOP",
+        contactSubtitle: "Spécifications, solutions d’application et demandes de partenariat commercial",
+        contactWhatsAppLabel: "WhatsApp",
+        contactPhoneLabel: "Téléphone",
+        contactEmailLabel: "E-mail",
+        contactWhatsAppAction: "Écrire",
+        contactPhoneAction: "Appeler",
+        contactEmailAction: "Envoyer un e-mail",
+        contactClose: "Fermer les coordonnées",
         houseBrandTitle: "Système intégral HYDRO-BLOK",
         houseSubtitle: "Panneau composite étanche et thermo-isolant · Guide 3D interactif pour toute la maison",
         houseSpecLabel: "Zones d’application :",
@@ -1649,6 +1915,16 @@
         brandTitle: "لوح هيدروبلوك (HYDRO-BLOK)",
         modelBoard: "بنية اللوح",
         modelHouse: "تطبيقات المنزل",
+        contactButton: "تواصل معنا",
+        contactTitle: "تواصل مع JUST TOP",
+        contactSubtitle: "للاستفسار عن مواصفات المنتجات وحلول التطبيقات وفرص التعاون التجاري",
+        contactWhatsAppLabel: "واتساب",
+        contactPhoneLabel: "الهاتف",
+        contactEmailLabel: "البريد الإلكتروني",
+        contactWhatsAppAction: "ابدأ المحادثة",
+        contactPhoneAction: "اتصل بنا",
+        contactEmailAction: "أرسل بريداً",
+        contactClose: "إغلاق معلومات التواصل",
         houseBrandTitle: "نظام HYDRO-BLOK للمنزل بالكامل",
         houseSubtitle: "لوح مركّب للعزل المائي والحراري · دليل تفاعلي ثلاثي الأبعاد لتطبيقات المنزل بالكامل",
         houseSpecLabel: "مناطق التطبيق:",
@@ -1772,6 +2048,16 @@
         brandTitle: "Строительная панель HYDRO-BLOK",
         modelBoard: "Структура панели",
         modelHouse: "Весь дом",
+        contactButton: "Связаться",
+        contactTitle: "Связаться с JUST TOP",
+        contactSubtitle: "Характеристики продукции, решения по применению и деловые запросы",
+        contactWhatsAppLabel: "WhatsApp",
+        contactPhoneLabel: "Телефон",
+        contactEmailLabel: "Эл. почта",
+        contactWhatsAppAction: "Написать",
+        contactPhoneAction: "Позвонить",
+        contactEmailAction: "Отправить письмо",
+        contactClose: "Закрыть контактные данные",
         houseBrandTitle: "HYDRO-BLOK — система для всего дома",
         houseSubtitle: "Композитная тепло- и гидроизоляционная плита · Интерактивная 3D-схема применения",
         houseSpecLabel: "Зоны применения:",
@@ -2582,6 +2868,34 @@
       }
     }
 
+    let contactReturnFocus = null;
+
+    function toggleContactModal(forceOpen) {
+      const modal = document.getElementById('contact-modal');
+      const trigger = document.getElementById('contact-button');
+      const shouldOpen = typeof forceOpen === 'boolean' ? forceOpen : modal.classList.contains('hidden');
+
+      if (shouldOpen) {
+        contactReturnFocus = document.activeElement;
+      }
+
+      modal.classList.toggle('hidden', !shouldOpen);
+      modal.classList.toggle('flex', shouldOpen);
+      modal.setAttribute('aria-hidden', String(!shouldOpen));
+      trigger.setAttribute('aria-expanded', String(shouldOpen));
+
+      if (shouldOpen) {
+        document.getElementById('contact-modal-close').focus();
+      } else if (contactReturnFocus instanceof HTMLElement) {
+        contactReturnFocus.focus();
+        contactReturnFocus = null;
+      }
+    }
+
+    function handleContactBackdrop(event) {
+      if (event.target === event.currentTarget) toggleContactModal(false);
+    }
+
     // 视角控制与环绕功能
     let isAutoRotating = false;
     function toggleAutoRotate() {
@@ -3019,6 +3333,15 @@
       setText('ui-brand-title', data.brandTitle);
       setText('ui-model-board', data.modelBoard);
       setText('ui-model-house', data.modelHouse);
+      setText('ui-contact-button', data.contactButton);
+      setText('contact-modal-title', data.contactTitle);
+      setText('contact-modal-subtitle', data.contactSubtitle);
+      setText('contact-whatsapp-label', data.contactWhatsAppLabel);
+      setText('contact-phone-label', data.contactPhoneLabel);
+      setText('contact-email-label', data.contactEmailLabel);
+      setText('contact-whatsapp-action', data.contactWhatsAppAction);
+      setText('contact-phone-action', data.contactPhoneAction);
+      setText('contact-email-action', data.contactEmailAction);
       setText('ui-subtitle', data.subtitle);
       setText('ui-std-tag', data.stdTag);
       setText('ui-spec-label', data.specLabel);
@@ -3047,6 +3370,8 @@
       setAccessibleLabel('btn-reset-view', data.titleResetView);
       setAccessibleLabel('btn-close-inspector', data.titleCloseInspector);
       setAccessibleLabel('modal-close-icon', data.titleCloseSpecs);
+      setAccessibleLabel('contact-button', data.contactButton);
+      setAccessibleLabel('contact-modal-close', data.contactClose);
       setAccessibleLabel('spec-picker', data.specWheelHint);
       document.getElementById('explode-slider').setAttribute('aria-label', data.sliderLabel);
 
@@ -3087,6 +3412,11 @@
 
     document.addEventListener('keydown', (event) => {
       if (event.key === 'Escape') {
+        const contactModal = document.getElementById('contact-modal');
+        if (!contactModal.classList.contains('hidden')) {
+          toggleContactModal(false);
+          return;
+        }
         const modal = document.getElementById('specs-modal');
         if (!modal.classList.contains('hidden')) toggleSpecsModal(false);
       }
