@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HYDRO-BLOK 全屋应用系统｜3D 模型预览</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+  <link rel="stylesheet" href="./assets/house.css">
+</head>
+<body>
+  <script>if (window.parent !== window) document.body.classList.add('embedded');</script>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <div class="logo-frame" aria-label="佳拓 JT Logo">
+          <img src="../../../assets/images/logo.png" alt="佳拓 JT Logo">
+        </div>
+        <div class="brand-copy">
+          <div class="brand-title-row">
+            <h1 id="house-brand-title">HYDRO-BLOK 全屋应用系统</h1>
+            <span class="std-badge">DIN EN 13164</span>
+          </div>
+          <p id="house-brand-subtitle">建筑防水隔热复合结构板 · 全屋应用 3D 交互示意</p>
+        </div>
+      </div>
+
+      <div class="mode-pill" id="house-mode-pill" aria-label="当前模型">
+        <button class="muted" id="switch-to-board-model" type="button">板材结构</button>
+        <span class="active" id="house-mode-label">全屋应用示意模型</span>
+      </div>
+
+      <div class="toolbar">
+        <div class="toolbar-group">
+          <button class="btn" id="btn-auto-rotate" type="button">360° 环绕</button>
+          <button class="btn" id="btn-reset-view" type="button">恢复视角</button>
+          <button class="btn active view-extra" data-view="iso" type="button">斜角透视</button>
+          <button class="btn view-extra" data-view="front" type="button">正面剖视</button>
+          <button class="btn view-extra" data-view="top" type="button">顶部俯视</button>
+        </div>
+        <button class="btn" id="btn-toggle-labels" type="button">隐藏标注</button>
+      </div>
+    </header>
+
+    <main class="stage" id="stage">
+      <div id="canvas-container" aria-label="HYDRO-BLOK 全屋应用三维交互模型"></div>
+      <button class="top-restore-btn" id="btn-restore-top" type="button">↺&nbsp;&nbsp;一键复原整体</button>
+
+      <section class="glass-card overview-card" aria-live="polite">
+        <div class="eyebrow"><span class="eyebrow-dot"></span><span id="overview-eyebrow">Whole House System</span></div>
+        <h2 class="overview-title" id="overview-title">全屋快速安装系统应用</h2>
+        <p class="overview-subtitle" id="overview-subtitle">现代住宅剖面示意模型，集中展示板材在建筑八个核心区域中的应用关系。</p>
+        <div class="overview-stats">
+          <div class="mini-stat"><span id="overview-count-label">交互模块</span><strong id="overview-count-value">8 个应用区域</strong></div>
+          <div class="mini-stat"><span id="overview-current-label">当前选中</span><strong id="overview-selected">屋顶系统</strong></div>
+        </div>
+        <div class="interaction-hint" id="interaction-hint">鼠标左键旋转 · 滚轮缩放 · 右键平移<br>点击模型或三维标注：向左右拆出，可同时拆出多个系统</div>
+      </section>
+
+      <aside class="glass-card inspector-card" aria-live="polite">
+        <div class="inspector-head">
+          <div>
+            <span class="module-index" id="module-index">MODULE 01 / 08</span>
+            <h2 id="module-title">屋顶系统</h2>
+            <div class="inspector-en" id="module-en">ROOF</div>
+          </div>
+          <div class="module-number" id="module-number">01</div>
+        </div>
+        <p class="module-description" id="module-description">以斜屋面形式展示 HYDRO-BLOK 板材在屋顶围护区域的连续应用，强调轻质基层与完整覆盖关系。</p>
+        <div class="property-grid">
+          <div class="property"><span id="prop-position-label">应用位置</span><strong id="prop-position">建筑顶部围护结构</strong></div>
+          <div class="property"><span id="prop-function-label">示意功能</span><strong id="prop-function">连续基层与防护覆盖</strong></div>
+          <div class="property"><span id="prop-status-label">模型状态</span><strong id="prop-status">已选中，可平移拆出</strong></div>
+          <div class="property"><span id="prop-action-label">交互方式</span><strong id="prop-action">点击模型或标注即可拆出</strong></div>
+        </div>
+        <div class="inspector-actions">
+          <button class="action-primary" id="btn-pull-module" type="button">向右平移观察</button>
+          <button class="action-secondary" id="btn-restore-card" type="button">全部复原</button>
+        </div>
+      </aside>
+
+      <section class="glass-card bottom-panel">
+        <div class="explode-row">
+          <div class="explode-title"><span class="explode-icon">↗</span><span id="explode-title">全屋模块爆炸图</span></div>
+          <div class="slider-wrap">
+            <input id="explode-slider" type="range" min="0" max="100" step="1" value="0" aria-label="全屋模块爆炸展开程度">
+            <span class="explode-value" id="explode-value">0%</span>
+          </div>
+          <button class="reset-btn" id="btn-restore-all" type="button">一键复原整体</button>
+        </div>
+        <div class="module-tabs" id="module-tabs"></div>
+      </section>
+
+      <div class="runtime-status hidden" id="runtime-status" role="alert"></div>
+    </main>
+  </div>
+
+    <script src="./assets/house.js"></script>
+</body>
+</html>

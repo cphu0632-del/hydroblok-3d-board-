@@ -1,0 +1,21 @@
+{
+  "generatedAt": "2026-09-22T08:57:12.326Z",
+  "source": {
+    "file": "C:/Users/Administrator/Desktop/hydroblok-3d/index.html",
+    "byteLength": 484185
+  },
+  "preservedFeatures": [
+    "HYDRO-BLOK board 3D viewer",
+    "Whole-house 3D viewer",
+    "Six-language interface",
+    "Contact modal",
+    "Product dimensions, area and weight data",
+    "Layer selection and exploded views"
+  ],
+  "externalRuntimeDependencies": [
+    "Tailwind CDN",
+    "Three.js r128 CDN",
+    "OrbitControls CDN",
+    "Lucide CDN"
+  ]
+}
